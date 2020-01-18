@@ -1,0 +1,1 @@
+export const RootRoute = 'http://localhost:8000'
