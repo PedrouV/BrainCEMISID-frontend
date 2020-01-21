@@ -131,7 +131,7 @@ export const ExtraItems = (props) =>{
                 Todos los Proyectos
             </ListItemText>
             </ListItem>
-            <ListItem button component={Link} to={`/auth/login`}>
+            <ListItem button component={Link} to={`/`} onClick={props.logOutFunction}>
             <ListItemIcon>
                 <ExitToAppIcon/>
             </ListItemIcon>

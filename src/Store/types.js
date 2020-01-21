@@ -3,10 +3,14 @@ export const SIGN_IN_USER = 'SIGN_IN_USER'
 export const LOADING_SIGN_IN = 'LOADING_SIGN_IN'
 export const LOADING_PROJECTS = 'LOADING_PROJECTS'
 export const SET_PROJECTS = 'SET_PROJECTS'
+export const LOG_OUT = 'LOG_OUT'
 //Project Action Types
 export const SET_PROJECT_SUMMARY = 'SET_PROJECT_SUMMARY'
 export const LOADING_PROJECT_DETAILS = 'LOADING_PROJECT_DETAILS'
 export const SET_PROJECT_DETAILS = 'SET_PROJECT_DETAILS'
 export const SET_CARDS = 'SET_CARDS'
 export const SET_SNB = 'SET_SNB'
-//Protocols Action Types
+//Stimulus Action Types
+export const RECOGNITION_ATTEMPT = 'RECOGNITION_ATTEMPT'
+export const RECOGNITION_SUCCESS = 'RECOGNITION_SUCCESS'
+export const RECOGNITION_FAILURE = 'RECOGNITION_FAILURE'

@@ -39,8 +39,6 @@ const Authentication = (props) => {
     const {user, loginStatus} = props
 
     const path = props.match.params.type;
-    console.log(path)
-
     const [tab, setTab] = React.useState(path === 'signup' ? 1 : 0);
 
     const handleChange = (event, newValue) => {

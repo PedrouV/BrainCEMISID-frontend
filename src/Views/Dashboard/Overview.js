@@ -13,7 +13,9 @@ import DynamicFeedIcon from '@material-ui/icons/DynamicFeed';
 import clsx from 'clsx'
 import { connect } from 'react-redux';
 import { useEffect } from 'react';
+import {Link as RouterLink} from 'react-router-dom'
 
+const RLink = React.forwardRef((props, ref) => <RouterLink innerRef={ref} {...props} />);
 
 const BiologySlider = withStyles({
     root: {
@@ -262,14 +264,14 @@ const Overview = (props) => {
                     className={classes.root}
                     >
                     <Divider/>
-                    <ListItem button>
+                    <ListItem button component={RLink} to={`/dashboard/${projectId}/sight`}>
                         <ListItemIcon>
                             <VisibilityIcon/>   
                         </ListItemIcon>
                         <ListItemText primary={`Vista: ${props.sight.length}`} />
                     </ListItem>
                     <Divider/>
-                    <ListItem button>
+                    <ListItem button component={RLink} to={`/dashboard/${projectId}/hearing`}>
                         <ListItemIcon>
                             <HearingIcon/>
                         </ListItemIcon>

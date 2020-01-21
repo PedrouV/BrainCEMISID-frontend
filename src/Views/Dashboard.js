@@ -27,6 +27,7 @@ import NewCard from './Dashboard/NewCard';
 import { PrimaryItems, SecondaryItems, ExtraItems } from './Dashboard/MenuItems';
 import { connect } from 'react-redux';
 import { getSNB } from '../Store/Actions/Project';
+import { logOut } from '../Store/Actions/Auth';
 
 
 function Copyright() {
@@ -141,6 +142,10 @@ const Dashboard = (props) => {
   };
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
+  const logOut = () => {
+    props.logOut();
+  }
+
   return (
     <div className={classes.root}>
       <CssBaseline />
@@ -185,7 +190,7 @@ const Dashboard = (props) => {
         </List>
         <Divider/>
         <List>
-          <ExtraItems pathId={pid}/>
+          <ExtraItems pathId={pid} logOutFunction={logOut}/>
         </List>
       </Drawer>
       <main className={classes.content}>
@@ -216,8 +221,10 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return ({
     getSNB: () => {
-      console.log('Getting SNB')
       dispatch(getSNB());
+    },
+    logOut: () => {
+      dispatch(logOut())
     }
   })
 }

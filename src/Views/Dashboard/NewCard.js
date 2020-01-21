@@ -115,7 +115,6 @@ const NewCard = (props) => {
 
     const handleSubmit = (e) =>{
         e.preventDefault();
-        console.log(cropper.current.cropper.getCroppedCanvas().toDataURL())
         let image = new Image();
         image.src = cropper.current.cropper.getCroppedCanvas().toDataURL()
         let flag = false;
@@ -136,7 +135,6 @@ const NewCard = (props) => {
             )
             let optimizedImageURL = canvas.toDataURL();
             setTextImage(optimizedImageURL)
-            console.log(optimizedImageURL)
             props.save(name, className, optimizedImageURL)
         }
         }

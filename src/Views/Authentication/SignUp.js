@@ -78,7 +78,6 @@ const SignUp = (props) => {
       && password.length >= 6 && password === passwordConfirm
       && username
       && terms
-    console.log(registerForm, terms , '==', result)
     return result;
   }
 

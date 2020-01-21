@@ -14,7 +14,6 @@ function ProjectList(props) {
 
     const {projects} = props
     const classes = useStyles();
-    console.log(projects)
     return (
         <div className={classes.root}>
             <Grid container spacing={2}>

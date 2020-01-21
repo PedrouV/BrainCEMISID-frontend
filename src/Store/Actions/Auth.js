@@ -1,4 +1,4 @@
-import { SIGN_IN_USER, LOADING_SIGN_IN, LOADING_PROJECTS, SET_PROJECTS } from "../types"
+import { SIGN_IN_USER, LOADING_SIGN_IN, LOADING_PROJECTS, SET_PROJECTS, LOG_OUT } from "../types"
 import { RootRoute } from "../../Config/api"
 import Axios from "axios"
 
@@ -9,8 +9,8 @@ export const tryRelog = () => {
         let user = JSON.parse(storage.getItem('bcemisid-user'));
         let userInfo = JSON.parse(storage.getItem('bcemisid-userInfo'));
         // remove from store
-        console.log(user, 'ACA VA EL DEBUG');
-        console.log(userInfo, 'ACA VA EL DEBUG');
+        console.log('Store User: ', user);
+        console.log('Store UserInfo:', userInfo);
         if(user && userInfo)
             dispatch({type: SIGN_IN_USER, 
                 payload: {
@@ -26,9 +26,7 @@ export const LoginUser = (credentials) =>{
     return (dispatch) =>{
         const {username, password} = credentials
         dispatch({type: LOADING_SIGN_IN})
-        console.log(RootRoute+'/api/auth/login')
         Axios.post(RootRoute+'/api/auth/login', {username, password}).then(r=>{
-            console.log(r);
             const user = {id: r.data.user.id, token: r.data.token}
             const userInfo = {email: r.data.user.email, id: r.data.user.id, username: r.data.user.username}
             console.log(JSON.stringify(user), JSON.stringify(userInfo))
@@ -51,9 +49,7 @@ export const RegisterUser = (data) =>{
     return (dispatch) =>{
         const {username, email, password} = data
         dispatch({type: LOADING_SIGN_IN})
-        console.log(RootRoute+'/api/auth/register')
         Axios.post(RootRoute+'/api/auth/register', {username, email, password}).then(r=>{
-            console.log(r);
             dispatch({type: SIGN_IN_USER, payload: 
                 {userInfo: {email: r.data.user.email, id: r.data.user.id, username: r.data.user.username}, 
                 user: {id: r.data.user.id, token: r.data.token},
@@ -71,9 +67,7 @@ export const getUserProjects = () => {
         const header = {
             Authorization: `token ${getState().Auth.user.token}`
         }
-        console.log(header)
         Axios.get(RootRoute+`/api/user_projects`, {headers: header}).then(r=>{
-            console.log(r.data)
             let payload = []
             r.data.forEach(project=>{
                 let bfcObject = JSON.parse(project.internal_state)
@@ -89,5 +83,15 @@ export const getUserProjects = () => {
         }).catch(e=>{
             console.log(e)
         })
+    }
+}
+
+export const logOut = () => {
+    return (dispatch, getState) => {
+        dispatch({type: LOG_OUT})
+        let storage = window.localStorage;
+        // get from store
+        storage.removeItem('bcemisid-user');
+        storage.removeItem('bcemisid-userInfo');
     }
 }

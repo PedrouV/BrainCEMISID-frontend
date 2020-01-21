@@ -1,12 +1,14 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {connect} from 'react-redux'
-import Draggable, {DraggableCore} from 'react-draggable'; // Both at the same time
-import { makeStyles, Button, IconButton, Grid, Card, Typography } from '@material-ui/core';
-import CloseIcon from '@material-ui/icons/Close';
-import EpisodeCard from '../../Components/EpisodeCard';
-import {n1, n2, n3, n4, n5, n6, n7, n8, n9, n0} from '../../Components/PreloadedCardImages'
+import { makeStyles, Button, IconButton, Grid, Card, Typography, Divider, TextField } from '@material-ui/core';
 import Slider from '@material-ui/core/Slider';
 import { withStyles } from '@material-ui/styles';
+import CardList from '../../Components/CardList'
+import EpisodeCard from '../../Components/EpisodeCard'
+import { resizeImage, getBooleanArrayFromImageData, createImageFromBooleanArray, amplifyBooleanArrayImage, transformHexArrayToBooleanArray } from '../../Store/Actions/Project';
+import { Recognize } from '../../Store/Actions/Stimulus';
+import VisibilityIcon from '@material-ui/icons/Visibility';
+import HearingIcon from '@material-ui/icons/Hearing';
 
 const BiologySlider = withStyles({
   root: {
@@ -107,108 +109,204 @@ const FeelingsSlider = withStyles({
   },
 })(Slider);
 
+const useStyles = makeStyles(theme=>({
+  root: {
+    padding: theme.spacing(4)
+  },  
+  canvas: {
+    maxHeight: `${200}px`,
+    height: `${200}px`,
+    display: 'flex',
+    width: `${200}px`,
+    position: 'relative',
+    background: '#333',
+    borderRadius: theme.spacing(1),
+    border: `2px #AAA solid`,
+  },
+  canvasWrapper: {
+    whiteSpace: 'nowrap',
+    maxWidth: '100%',
+    borderRadius: theme.spacing(1),
+    
+  },
+  grid: {
+    maxHeight: '85vh'
+  },
+  panelWrapper: {
+    overflowX: 'auto',
+    overflowY: 'auto',
+    whiteSpace: 'nowrap',
+    maxWidth: '100%',
+    maxHeight: '82vh',
+    height: '100%',
+    border: `2px ${theme.palette.primary.main} solid`,
+    padding: theme.spacing(2)
+  },
+  card: {
+    paddingTop: '100%'
+  },
+  button: {
+    margin: theme.spacing(4,0)
+  },
+  wrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  icon: {
+    marginBottom: theme.spacing(1)
+  },
+  bolder: {
+    fontWeight: 500,
+    margin: theme.spacing(1,0)
+  }
+}))
 
-const Learning = (props) => {
+
+const Queries = (props) => {
 
   const [card, setCard] = React.useState(null)
-  const [episodesListPositions, setEpisodesListPositions] = React.useState([])
-  const [sortedList, setSortedList] = React.useState([])
+  const [biology, setBiology] = React.useState(0)
+  const [culture, setCulture] = React.useState(0)
+  const [feelings, setFeelings] = React.useState(0)
+  const [preview, setPreview] = React.useState(null)
+  const [tolerance, setTolerance] = React.useState(0.1)
+  const [colorLimit, setColorLimit] = React.useState(229.5)
+  const [visualHearing, setVisualHearing] = React.useState(null)
+  const [visualPattern, setVisualPattern] = React.useState(null)
+  const [neuronSet, setNeuronSet] = React.useState([])
 
-  let list = []
-  const boxSize = 200;
-  const useStyles = makeStyles(theme=>({
-    root: {
-      padding: theme.spacing(4)
-    },  
-    canvas: {
-      maxHeight: `${180+theme.spacing(4)}px`,
-      height: `${180+theme.spacing(4)}px`,
-      display: 'flex',
-      width: `${200+theme.spacing(2)}px`,
-      padding: theme.spacing(1), 
-      position: 'relative',
-      background: '#333',
-      borderRadius: theme.spacing(1),
-      border: `2px #AAA solid`,
-    },
-    canvasWrapper: {
-      overflowX: 'auto',
-      overflowY: 'auto',
-      whiteSpace: 'nowrap',
-      maxWidth: '100%',
-      borderRadius: theme.spacing(1),
-      
-    },
-    grid: {
-      maxHeight: '85vh'
-    },
-    panelWrapper: {
-      overflowX: 'auto',
-      overflowY: 'auto',
-      whiteSpace: 'nowrap',
-      maxWidth: '100%',
-      maxHeight: '82vh',
-      height: '100%',
-      border: `2px ${theme.palette.primary.main} solid`,
-      padding: theme.spacing(2)
-    },
-    card: {
-      paddingTop: '100%'
-    },
-    button: {
-      margin: theme.spacing(4,0)
-    }
-  }))
-
-  const create = (e) =>{
-    setCard(props.cards[e.target.id].image)
-    setEpisodesListPositions([...episodesListPositions, {position: null, index: episodesListPositions.length}])
-  }
-
-  const onStop = (e, ui) =>{
-    let canvas = document.getElementById('canvas')
-    let newList = []
-    for(let i = 0; i< canvas.children.length ; i++){
-      if(ui.node === canvas.children[i]){
-        console.log('eureka', i)
-        let obj = canvas.children[i];
-        var childPos = obj.offset;
-        console.log(canvas.children[i].offsetLeft + ui.lastX)
-        newList.push({position: canvas.children[i].offsetLeft + ui.lastX, index: i})
-      }else{
-        newList.push({position: episodesListPositions[i].position, index: i})
-      }
-      setEpisodesListPositions(newList)
-      let sorted = episodesListPositions
-      sorted = sorted.sort((a,b)=>{
-        return (a.position - b.position)
+  useEffect(()=>{
+    setVisualHearing(null)
+    setVisualPattern(null)
+    if(card){
+      resizeImage(card.image, 16, 16).then(response=>{
+        let arr = getBooleanArrayFromImageData(response.imageData, colorLimit)
+        createImageFromBooleanArray(amplifyBooleanArrayImage(arr, 12, response.imageData.width, response.imageData.height),response.imageData.width*12, response.imageData.height*12).then(image=>{
+          setPreview(image)
+        })
       })
-      setSortedList(sorted)
+      setNeuronSet(card.class)
     }
+  }, [card, tolerance])
+
+  useEffect(()=>{
+    if(props.recognizeStatus === 'success'){
+      if(props.recognizeResult !== null){
+        console.log('HIT')
+        const hBooleanArray = (amplifyBooleanArrayImage(transformHexArrayToBooleanArray(props.recognizeResult.h_pattern), 12, 16, 16)) 
+        const sBooleanArray = (amplifyBooleanArrayImage(transformHexArrayToBooleanArray(props.recognizeResult.s_pattern), 12, 16, 16))
+        let promises = []
+        promises.push(createImageFromBooleanArray(hBooleanArray, 16*12, 16*12, {true: {r: 119, g: 221, b: 119}, false: {r: 239, g: 239, b: 239}})) 
+        promises.push(createImageFromBooleanArray(sBooleanArray, 16*12, 16*12, {true: {r: 238, g: 154, b: 18}, false: {r: 239, g: 239, b: 239}}))
+        Promise.all(promises).then(results=>{
+          setVisualHearing(results[0])
+          setVisualPattern(results[1])
+        })
+      }else {
+        console.log('MISS')
+      }
+    }
+  }, [props.recognizeStatus])
+
+  const create = (element) =>{
+    setCard(element)
   }
 
   const handleConfirm = (e) =>{
     e.preventDefault();
-    let orderedList = episodesListPositions.sort((a,b)=>{
-      return (a.position - b.position)
-    })
-    console.log(episodesListPositions, orderedList)
+    let data = {
+      colorLimit
+    }
+    props.recognize(card, data)
+  }
+
+  const clean = (index) => (e) => {
+    setCard(null)
   }
 
   const valuetext = (value) => {
-    return `${value}`;
+    return `${value/100}`;
+  }
+
+  const changeTolerance = (e, newValue) => {
+    setTolerance(newValue/100);
+    setColorLimit(255 - 254*newValue/100)
+  }
+
+  const neuronSetChanged = (e) => {
+    setNeuronSet(e.target.value)
   }
 
     const classes = useStyles();
     return (
         <div className={classes.root}>
           <Grid container spacing={2} className={classes.grid}>
-            <Grid item xs={8}>
+          <Grid item xs={8}>
               <div className={classes.canvasWrapper}>
                 <div className={classes.canvas} id='canvas'>
-                  {card && <EpisodeCard onStop={null} src={card} id={'selected-card'} zIndex={1}/>}
+                  {card && <EpisodeCard onRemove={clean} onStop={null} src={card.image} id={'selected-card'} zIndex={1}/>}
                 </div>
               </div>
+              {visualPattern && visualHearing && <Grid container>
+                  <Grid item xs={12}>
+                    <Typography className={classes.bolder}>Pensamiento: </Typography>
+                  </Grid>
+                  <Grid item xs={4}>
+                    <div className={classes.wrapper}>
+                      <VisibilityIcon className={classes.icon}/>
+                      <img src={visualPattern}/>
+                    </div>
+                  </Grid>
+                  <Grid item xs={4} className={classes.wrapper}>
+                    <Typography className={classes.bolder}>Categoría</Typography>
+                    <Typography>{props.recognizeResult.hearing_class}</Typography>
+                  </Grid>
+                  <Grid item xs={4}>
+                    <div className={classes.wrapper}>
+                      <HearingIcon className={classes.icon}/>
+                      <img src={visualHearing}/> 
+                    </div>
+                  </Grid>
+                </Grid>}
+              {card && <Grid container spacing={2} className={classes.p80}>
+                  <Grid item xs={12}>
+                    <Divider/>
+                  </Grid>
+                  <Grid item xs={12} className={classes.innerGrid}>
+                    <Typography className={classes.bolder}>Ajustes del Patrón Visual:</Typography>
+                  </Grid>
+                  <Grid  item xs={6} className={classes.innerGrid}>
+                    <Typography className={classes.sectionTitle}>Previsualización</Typography>
+                    <img src={preview} className={classes.previewImage}/>
+                  </Grid>
+                  <Grid  item xs={6} className={classes.innerGrid}>
+                    <Typography className={classes.sectionTitle}>Tolerancia al Color</Typography>
+                    <Slider
+                      defaultValue={10}
+                      getAriaValueText={valuetext}
+                      marks={true}
+                      min={1}
+                      max={100}
+                      valueLabelDisplay='on'
+                      valueLabelFormat={valuetext}
+                      onChange={changeTolerance}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Divider/>
+                  </Grid>
+                </Grid>
+              }
+              {!card && <Divider/>}
+              <TextField
+                className={classes.p80}
+                onChange={neuronSetChanged}
+                value={neuronSet}
+                label='Conjunto Neuronal'
+                variant='outlined'
+              />
               <BiologySlider
                 defaultValue={67}
                 getAriaValueText={valuetext}
@@ -242,19 +340,9 @@ const Learning = (props) => {
               <Button onClick={handleConfirm} className={classes.button} variant='contained' color='primary'>Reconocer</Button>
             </Grid>
             <Grid item xs={4}>
-              <div className={classes.panelWrapper}>
-                  <Grid container spacing={1}>
-                    {props.cards.map((card, index) =>{
-                      return(
-                        <Grid item xs={4} >
-                          <Card onClick={create} id={index} className={classes.card} style={{background: `url(${card.image})`, backgroundSize: 'cover'}}>
-                          </Card>
-                        </Grid>
-                      )
-                    })}
-                  </Grid>
-              </div>
+              <CardList create={create}/>
             </Grid>
+            
           </Grid>
         </div>
     )
@@ -262,25 +350,26 @@ const Learning = (props) => {
 
 const mapStateToProps = (state) =>{
   return ({
-    cards: [
-      {image: n1,},
-      {image: n2,},
-      {image: n3,},
-      {image: n4,},
-      {image: n5,},
-      {image: n6,},
-      {image: n7,},
-      {image: n8,},
-      {image: n9,},
-      {image: n0,},
-    ]
+    cards: state.Project.cards,
+    recognizeStatus: state.Stimulus.recognizeStatus,
+    recognizeResult: state.Stimulus.recognizeResult, 
   })
 }
 
 const mapDispatchToProps = (dispatch) =>{
   return({
+    recognize: (card, data) => {
+      console.log({card, data});
+      dispatch(Recognize(card, data))
+    },
+    // getCards: () => {
+    //   dispatch(getUserCards());
+    // },
+    // getAllCards: () => {
+    //   dispatch(getCards())
+    // },
 
   })
 }
 
-export default connect(mapStateToProps)(Learning)
+export default connect(mapStateToProps, mapDispatchToProps)(Queries)

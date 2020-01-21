@@ -74,11 +74,11 @@ const CreateProject = (props) => {
     const {user} = props
     const [name, setName] = React.useState('')
     const [noNameError, setNoNameError] = React.useState(false)
-    // if(user){
-    //     return (
-    //         <Redirect to={'/auth/login'}/>
-    //     )
-    // }
+    if(!user){
+        return (
+            <Redirect to={'/auth/login'}/>
+        )
+    }
 
     const handleChange = (e) => {
         setName(e.target.value)
@@ -86,7 +86,6 @@ const CreateProject = (props) => {
 
     const createProject = (e) => {
         if(name !== ''){
-            // console.log(name)
             props.createProject(name)
         }
         else{
@@ -138,7 +137,6 @@ const mapDispatchToProps = (dispatch) => {
     return({
         createProject: (data) => {
             dispatch(create(data));
-            // console.log(data)
         }
     })
 }

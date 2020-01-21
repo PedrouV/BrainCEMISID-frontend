@@ -8,6 +8,26 @@ const colorLimit = 255 - 254*colorTolerance
 
 //Helper Functions
 
+export const amplifyBooleanArrayImage = (arr, factor, width, height) => {
+    let newArray = [];
+    for(let i = 0; i < height ; i++){
+      for(let l = 0 ; l < factor ; l++){
+        for(let j = 0 ; j < width ; j++){
+          if(arr[i*width+j]){
+            for(let k = 0 ; k < factor ; k++){
+              newArray.push(1)
+            }
+          }else{
+            for(let k = 0 ; k < factor ; k++){
+              newArray.push(0)
+            }
+          }
+        }
+      }
+    }
+    return newArray
+  }
+
 export const transformIntToHexArray = (int, expectedSize) => {
     let hexArr = []
     let aux = int;
@@ -65,7 +85,6 @@ return b64toBlob(realData, contentType);
 export const resizeImage = (data, width, height) => {
 
     return new Promise((resolve, reject)=>{
-        console.log(data)
         let image = new Image();
         image.src = (data.indexOf('https://') === -1 && data.indexOf('http://') === -1) ? data : (data + '?' + new Date().getTime()); 
         image.crossOrigin = "Anonymous";
@@ -89,14 +108,13 @@ export const resizeImage = (data, width, height) => {
                 let optimizedImageURL = canvas.toDataURL();
                 let imageData = ctx.getImageData(0,0,width,height);
                 let pixelCount = width*height
-                // console.log(optimizedImageURL)
                 resolve({url: optimizedImageURL, imageData, pixelCount})
             }
         }
     })
 }
 
-export const createImageFromBooleanArray = (arr, w, h, customColors = {false: {r: 255, g: 255, b: 255}, true: {r: 0, g: 0, b: 0}}) => {
+export const createImageFromBooleanArray = (arr, w = 16, h = 16, customColors = {false: {r: 255, g: 255, b: 255}, true: {r: 0, g: 0, b: 0}}) => {
     return new Promise((resolve, reject)=>{
                 let formatedarr = []
                 arr.forEach(p=>{
@@ -118,11 +136,7 @@ export const createImageFromBooleanArray = (arr, w, h, customColors = {false: {r
                 canvas.width = w;
                 canvas.height = h;
                 ctx.putImageData(imgdt,0,0);
-                console.log(canvas.toDataURL());
                 resolve(canvas.toDataURL())
-                // let optimizedImageURL = canvas.toDataURL();
-                // console.log(optimizedImageURL)
-                // resolve({imageData, pixelCount})
     })
 }
 
@@ -146,21 +160,34 @@ export const getBooleanArrayFromImageData = (imgData, limit = colorLimit) => {
         }
     })
         // Section used for test purposes
-    createImageFromBooleanArray(booleanArray, imgData.width, imgData.height).then(r=>{
-        resizeImage(r,200,200).then(res=>{
-            console.log(res)
-        })
-    })
     return booleanArray;
 
 }
 
-const getBrainPatternFromBoleanArray = (booleanArray) => {
+export const transformHexArrayToBooleanArray = (hexArr) => {
+    let booleanArray = [];
+    hexArr.forEach(hex=>{
+      let binArr = []
+      let aux = hex;
+      while(aux > 0){
+          let rest = aux%2;
+          binArr.unshift(rest);
+          aux = (aux - rest)/2; 
+      }
+      let finalBin = []
+      for(let i = 0; i < 4 - binArr.length; i++){
+        finalBin.push(0);
+      }
+      finalBin = finalBin.concat(binArr)
+      booleanArray = booleanArray.concat(finalBin)
+    })
+    return booleanArray;
+  }
+
+export const getBrainPatternFromBoleanArray = (booleanArray) => {
     let brainPattern = []
     let sum = 0
     booleanArray.forEach((value, index)=>{
-        
-        console.log(value)
         if(index%4 === 0 && value)
             sum+=8
         if(index%4 === 1 && value)
@@ -181,14 +208,16 @@ const getBrainPatternFromBoleanArray = (booleanArray) => {
 
 export const GetProjectDetails = (project) =>{
     return (dispatch, getState) =>{
-        console.log('setting details of... ',project)
         dispatch({type: SET_PROJECT_SUMMARY, payload: project})
     }
 }
 
 export const CreateProject = (name) =>{
     return (dispatch, getState) =>{
-        Axios.post(RootRoute+`/api/kernel/`, {user_id: getState().Auth.userInfo.id, project_name: name}).then(response=>{
+        const config = {
+            headers: {'Authorization': `token ${getState().Auth.user.token}` }
+        }
+        Axios.post(RootRoute+`/api/kernel/`, {user_id: getState().Auth.userInfo.id, project_name: name}, config).then(response=>{
             console.log('ready')
         }).catch(err=>{
             console.log(err)
@@ -198,30 +227,39 @@ export const CreateProject = (name) =>{
 
 export const Learn = (card, data) => {
     return (dispatch, getState) => {
-        console.log(data)
+        console.log(data, 'Este test me interesa')
         resizeImage(card, 16, 16).then(response=>{
-            console.log(response.dataURL, response.imageData, response.pixelCount)
-            let arr = getBooleanArrayFromImageData(response.imageData)
+            let arr = getBooleanArrayFromImageData(response.imageData, data.colorLimit)
             let sightPattern = getBrainPatternFromBoleanArray(arr);
-            let hearingPattern;
-            console.log(sightPattern)
-            console.log("TEST" ,transformIntToHexArray(43,64))
+            let hearingPattern = data.hearingPattern
             const config = {
                 headers: {'Authorization': `token ${getState().Auth.user.token}` }
             }
             const formatedData = {
                 CLACK: [{
                     hearing_pattern: hearingPattern,
-                    hearing_class: data.category,
+                    hearing_class: data.category.toLowerCase(),
                     sight_pattern: sightPattern,
-                    intentions_input: [data.bfc.biology, data.bfc.feelings, data.bfc.cultural],
-                    image_id: -1,
+                    intentions_input: [data.bfc.biology, data.bfc.feelings, data.bfc.culture],
+                    desired_intentions_input: [getState().Project.desiredState.biology, getState().Project.desiredState.feelings, getState().Project.desiredState.culture],
+                    image_id: data.cardId,
                     rename: true,
+                    set: data.set
                 }],
                 mode: "EPISODES"
             }
-            Axios.put(`${RootRoute}/api/api/kernel/?project_id=${getState().Project.projectId}`, formatedData, config).then(r=>{
-                console.log('omg paso :D', r)
+            console.log(formatedData, config, getState().Project.projectId)
+            Axios.put(`${RootRoute}/api/kernel/?project_id=${getState().Project.projectId}`, formatedData, config).then(r=>{
+                let promises = [];
+                promises.push(Axios.get(`${RootRoute}/api/sight_net/?project_id=${getState().Project.projectId}`, config))
+                promises.push(Axios.get(`${RootRoute}/api/hearing_net/?project_id=${getState().Project.projectId}`, config))
+                Promise.all(promises).then(response=>{
+                    dispatch({type: SET_SNB, payload: {sight: response[0].data, hearing: response[1].data}})
+                }).catch(err=>{
+                    console.log(err);
+                    dispatch({type: SET_SNB, payload: {sight: [], hearing: []}})
+                })
+
             })
             // var palette    = this.getPaletteFromPixels(pixels, pixelCount, colorCount, quality, allowWhite)
 
@@ -230,19 +268,22 @@ export const Learn = (card, data) => {
     }
 }
 
+export const Recognize = (card, data) => {
+    return (dispatch, getState) => {
+
+    }
+}
+
 export const SaveCard = (data) => {
     return (dispatch, getState) => {
-        console.log(data)
         var bodyFormData = new FormData();
         bodyFormData.set("name", data.name);
         bodyFormData.set("name_class", data.className);
         bodyFormData.append('img', imagetoblob(data.data), `${getState().Auth.userInfo.username}_${data.className}_${data.name}.png`)
-        console.log(bodyFormData.get('img'), bodyFormData.get('name'), bodyFormData.get('name_class'))
         const config = {
             headers: {'Content-Type': 'multipart/form-data', 'Authorization': 'token '+getState().Auth.user.token }
         }
         const url = `${RootRoute}/api/user_collection/`
-        console.log(url, bodyFormData, config)
         Axios.post(url,bodyFormData,config).then(r=>{
             console.log(r);
         }).catch(err=>{
@@ -252,7 +293,6 @@ export const SaveCard = (data) => {
 }
 
 const helperGetCards = (url, config = null, data = []) => {
-    console.log('loading')
     return Axios.get(url, config).then(res=>{
         let newdata = data.concat(res.data.results);
         if(res.data.next !== null)
@@ -291,11 +331,9 @@ export const getSNB = () => {
         let config = {
             headers: { 'Authorization': `token ${getState().Auth.user.token}`}
         }
-        console.log(getState().Project.projectId, config, "DBURGENT")
         promises.push(Axios.get(`${RootRoute}/api/sight_net/?project_id=${getState().Project.projectId}`, config))
         promises.push(Axios.get(`${RootRoute}/api/hearing_net/?project_id=${getState().Project.projectId}`, config))
         Promise.all(promises).then(response=>{
-            console.log('SETTING SNB', response[0].data, response[1].data)
             dispatch({type: SET_SNB, payload: {sight: response[0].data, hearing: response[1].data}})
         }).catch(err=>{
             console.log(err);

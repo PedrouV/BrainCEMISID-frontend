@@ -1,6 +1,6 @@
 import React, { useEffect, Fragment } from 'react'
 import {connect} from 'react-redux'
-import { makeStyles, Button, Grid, Card, Typography, InputLabel, MenuItem, Select, Paper, Tabs, Tab, TextField } from '@material-ui/core';
+import { makeStyles, Button, Grid, Card, Typography, InputLabel, MenuItem, Select, Paper, Tabs, Tab, TextField, Divider } from '@material-ui/core';
 import EpisodeCard from '../../Components/EpisodeCard';
 import {n1, n2, n3, n4, n5, n6, n7, n8, n9, n0} from '../../Components/PreloadedCardImages'
 import Slider from '@material-ui/core/Slider';
@@ -14,6 +14,9 @@ import { getUserCards, Learn, getCards, getBooleanArrayFromImageData, createImag
 import SelectInput from '@material-ui/core/Select/SelectInput';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import HearingIcon from '@material-ui/icons/Hearing';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+
+const customColors = {true: {r: 31, g: 147, b: 195}, false: {r: 255, g: 255, b: 255}}
 
 const CCard = (props) => {
   const {card, elementId, clickFunction, className} = props;
@@ -132,23 +135,19 @@ const useStyles = makeStyles(theme=>({
     padding: theme.spacing(4)
   },  
   canvas: {
-    maxHeight: `${180+theme.spacing(4)}px`,
-    height: `${180+theme.spacing(4)}px`,
+    maxHeight: `${200}px`,
+    height: `${200}px`,
     display: 'flex',
-    width: `${200+theme.spacing(2)}px`,
-    padding: theme.spacing(1), 
+    width: `${200}px`,
     position: 'relative',
     background: '#333',
     borderRadius: theme.spacing(1),
     border: `2px #AAA solid`,
-
+    alignSelf: 'flex-end'
   },
   canvasWrapper: {
-    overflowX: 'auto',
-    overflowY: 'auto',
     whiteSpace: 'nowrap',
     maxWidth: '80%',
-    borderRadius: theme.spacing(1),
     display: 'flex',
     justifyContent: 'space-between'
   },
@@ -162,10 +161,15 @@ const useStyles = makeStyles(theme=>({
     textAlign: 'center'
   },
   p80:{
-    width: '80%'
+    width: '80%',
+    marginTop: theme.spacing(2)
   },
   visualHearing: {
+    width: `${16*12}px`,
     boxShadow: '0px 2px 1px -1px rgba(0,0,0,0.2), 0px 1px 1px 0px rgba(0,0,0,0.14), 0px 1px 3px 0px rgba(0,0,0,0.12)',
+  },
+  autocompleteField: {
+    width: `${16*12}px`,
   },
   grid: {
     maxHeight: '85vh'
@@ -298,17 +302,20 @@ const Learning = (props) => {
   const [colorLimit, setColorLimit] = React.useState(229.5)
   const [visualHearing, setVisualHearing] = React.useState(null)
   const [category, setCategory] = React.useState('')
+  const [hearingPattern, setHearingPattern] = React.useState([])
+  const [neuronSet, setNeuronSet] = React.useState([])
+  const [previousCategories, setPreviousCategories] = React.useState([{title: 'hola', pattern: []}, {title: 'gato', pattern: []}, {title: 'perro', pattern: []}, {title: 'gallo', pattern: []}, {title: 'gamificacion', pattern: []}])
   
   //Tolerance Changed
   useEffect(()=>{
     if(card){
-      resizeImage(card, 16, 16).then(response=>{
-        console.log(response.dataURL, response.imageData, response.pixelCount)
+      resizeImage(card.image, 16, 16).then(response=>{
         let arr = getBooleanArrayFromImageData(response.imageData, colorLimit)
         createImageFromBooleanArray(amplifyBooleanArrayImage(arr, 12, response.imageData.width, response.imageData.height),response.imageData.width*12, response.imageData.height*12).then(image=>{
           setPreview(image)
         })
       })
+      setNeuronSet(card.class)
     }
   }, [card, tolerance])
   
@@ -340,15 +347,36 @@ const Learning = (props) => {
   }, [props.cards, className])
 
   useEffect(()=>{
-    createVisualHearing(props.snbHearing.length+1)
+    createVisualHearing((props.snbHearing.length)+1)
+    let arr = []
+    props.snbHearing.forEach(neuron=>{
+      arr.push({title: JSON.parse(neuron.knowledge)._class , pattern: JSON.parse(neuron.knowledge)._pattern})
+    })
+    setPreviousCategories(arr);
   }, [props.snbHearing])
+
+  useEffect(()=>{
+    let flag = true;
+    previousCategories.forEach(c=>{
+      if(c.title === category){
+        setHearingPattern(c.pattern)
+        createImageFromBooleanArray(amplifyBooleanArrayImage(transformHexArrayToBooleanArray(c.pattern), 10, 16 , 16), 16*10, 16*10, customColors).then(img=>{
+          setVisualHearing(img);
+        })
+        flag = false;
+      }
+    })
+    if(flag){
+      createVisualHearing((props.snbHearing.length)+1)
+    }
+  }, [category])
 
   const createVisualHearing = (value) => {
     let hexArray = transformIntToHexArray(value, 64);
+    setHearingPattern(hexArray);
     let booleanArray = transformHexArrayToBooleanArray(hexArray);
     let amplifiedBooleanArray = amplifyBooleanArrayImage(booleanArray, 10, 16, 16)
-    // console.log('HexArr', hexArray)
-    createImageFromBooleanArray(amplifiedBooleanArray, 16*10, 16*10, {true: {r: 31, g: 147, b: 195}, false: {r: 255, g: 255, b: 255}}).then(image=>{
+    createImageFromBooleanArray(amplifiedBooleanArray, 16*10, 16*10, customColors).then(image=>{
       setVisualHearing(image)
     })
   }
@@ -369,7 +397,7 @@ const Learning = (props) => {
   }
 
   const create = (e) =>{
-    setCard(cardArray[e.target.id].image)
+    setCard({image: cardArray[e.target.id].image, id: cardArray[e.target.id].id, class: cardArray[e.target.id].class})
   }
 
   const clean = (index) => (e) => {
@@ -382,18 +410,19 @@ const Learning = (props) => {
       bfc: {
         biology: biology/100, feelings: feelings/100, culture: culture/100
       },
-      hearingGenerator: props.snbHearing.length+1
+      hearingPattern,
+      category,
+      set: card.class,
+      colorLimit : colorLimit,
+      cardId : card.id,
     }
     if(card != null){
       if((biology !== 0 && culture !== 0 && feelings !== 0) || advice){
-        //props.learn(card, data)
-        console.log(data)
+        props.learn(card.image, data)
       }else{
-        console.log('pregunta por si acaso')
         setAdvice(true)
       }
     }else{
-      console.log('The card is not ready to upload')
     }
   }
 
@@ -415,7 +444,6 @@ const Learning = (props) => {
   }
 
   const handleSelectChange = (e) => {
-    console.log(e)
     setClassName(e.target.value)
   }
 
@@ -423,8 +451,21 @@ const Learning = (props) => {
     setCardTab(value)
   }
 
-  const changeCategory = (e) => {
-    setCategory(e.target.value)
+  const changeCategory = (e, val) => {
+    setCategory(val)
+  }
+
+  const neuronSetChanged = (e) => {
+    setNeuronSet(e.target.value)
+  }
+
+  const autocompleteInputChange = (e, value, reason) => {
+    if(reason === 'input'){
+      setCategory(value)
+    }else if(reason === 'reset' && e){
+      setCategory(e.target.value)
+    }
+
   }
 
     const classes = useStyles();
@@ -437,39 +478,73 @@ const Learning = (props) => {
                 <div className={classes.patternWrapper}>
                   <Typography className={classes.patternText}><VisibilityIcon/></Typography>
                   <div className={classes.canvas} id='canvas'>
-                    {card && <EpisodeCard onStop={null} src={card} id={'selected-card'} onRemove={clean} zIndex={1}/>}
+                    {card && <EpisodeCard onStop={null} src={card.image} id={'selected-card'} onRemove={clean} zIndex={1}/>}
                   </div>
                 </div>
                 <div className={classes.patternWrapper}>
-                  <Typography className={classes.patternText}><HearingIcon/><br/>(autogenerado)</Typography>
+                  <Typography className={classes.patternText}><HearingIcon/><br/>Categoría<br/>{category}</Typography>
                   {visualHearing && <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-end',}}>
+                    <Autocomplete
+                      freeSolo
+                      onChange={changeCategory}
+                      className={classes.autocompleteField} 
+                      id='category'
+                      blurOnSelect
+                      options={previousCategories.map(cate=> cate.title )}
+                      onInputChange={autocompleteInputChange}
+                      renderInput={params => (
+                        <TextField
+                          {...params}
+                          label='Categoría del Oído'
+                          margin="normal"
+                          variant='outlined'
+                          fullWidth
+                          InputProps={{ ...params.InputProps}}
+
+                        />
+                      )}
+                    />
                     <img src={visualHearing} className={classes.visualHearing}/>
-                    <TextField id='category' label='Categoría del Oído' onChange={changeCategory} value={category}/>
                     </div>}
                 </div>
               </div>
-              {card && <Grid container spacing={2} className={classes.p80}>
-              <Grid item xs={12} className={classes.innerGrid}>
-                <Typography className={classes.sectionTitle}>Ajustes del Patrón Visual:</Typography>
-              </Grid>
-              <Grid  item xs={6} className={classes.innerGrid}>
-                  <Typography className={classes.sectionTitle}>Previsualización</Typography>
-                  <img src={preview} className={classes.previewImage}/>
-                </Grid>
-                <Grid  item xs={6} className={classes.innerGrid}>
-                  <Typography className={classes.sectionTitle}>Tolerancia al Color</Typography>
-                  <Slider
-                    defaultValue={10}
-                    getAriaValueText={valuetext}
-                    marks={true}
-                    min={1}
-                    max={100}
-                    valueLabelDisplay='on'
-                    valueLabelFormat={valuetext}
-                    onChange={changeTolerance}
-                  />
-                </Grid>
+              {card && 
+                <Grid container spacing={2} className={classes.p80}>
+                  <Grid item xs={12}>
+                    <Divider/>
+                  </Grid>
+                  <Grid item xs={12} className={classes.innerGrid}>
+                    <Typography className={classes.sectionTitle}>Ajustes del Patrón Visual:</Typography>
+                  </Grid>
+                  <Grid  item xs={6} className={classes.innerGrid}>
+                    <Typography className={classes.sectionTitle}>Previsualización</Typography>
+                    <img src={preview} className={classes.previewImage}/>
+                  </Grid>
+                  <Grid  item xs={6} className={classes.innerGrid}>
+                    <Typography className={classes.sectionTitle}>Tolerancia al Color</Typography>
+                    <Slider
+                      defaultValue={10}
+                      getAriaValueText={valuetext}
+                      marks={true}
+                      min={1}
+                      max={100}
+                      valueLabelDisplay='on'
+                      valueLabelFormat={valuetext}
+                      onChange={changeTolerance}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Divider/>
+                  </Grid>
                 </Grid>}
+              {!card && <Divider/>}
+              <TextField
+                className={classes.p80}
+                onChange={neuronSetChanged}
+                value={neuronSet}
+                label='Conjunto Neuronal'
+                variant='outlined'
+              />
               {advice && <Typography className={classes.text}><b>Nota:</b> Ajuste las variables de BFC antes de aprender para asociar dicho estado al aprendizaje del nuevo conocimiento, de esta forma se afecta el estado interno del cerebro.</Typography>}
               <BiologySlider
                 defaultValue={0}
@@ -510,7 +585,7 @@ const Learning = (props) => {
                 value={feelings}
               />
               <Typography className={clsx(classes.label, classes.feelings)}><FavoriteIcon className={classes.icon}/>Feelings</Typography>
-              <Button onClick={handleConfirm} className={classes.button} variant='contained' color='primary' disabled={!card || !category}>Aprender</Button>
+              <Button onClick={handleConfirm} className={classes.button} variant='contained' color='primary' disabled={!card || !category || !neuronSet}>Aprender</Button>
             </Grid>
             <Grid item xs={4}>
               <Paper>
@@ -573,7 +648,6 @@ const mapStateToProps = (state) =>{
 const mapDispatchToProps = (dispatch) =>{
   return({
     learn: (card, data) => {
-      console.log({card, data});
       dispatch(Learn(card, data));
     },
     getCards: () => {
