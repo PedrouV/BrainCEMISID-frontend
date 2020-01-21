@@ -82,6 +82,7 @@ const initialState = {
     loadingCards: false,
     snbHearing: [],
     snbSight: [],
+    relNetwork: []
 }
 
 const ProjectReducer = (state = initialState, action) =>{
@@ -110,8 +111,10 @@ const ProjectReducer = (state = initialState, action) =>{
             newState.loadingCards = false;
             return newState;
         case SET_SNB:
+            console.log(action.payload)
             newState.snbHearing = action.payload.hearing;
             newState.snbSight = action.payload.sight;
+            newState.relNetwork = action.payload.relational;
             return newState;
         default:
             return newState

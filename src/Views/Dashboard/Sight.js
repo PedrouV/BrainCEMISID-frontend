@@ -80,7 +80,7 @@ const Hearing = (props) => {
                         <ListItem>
                             <Grid container>
                                 <Grid item xs={1} className={clsx(classes.bolder, classes.gridCell)}>
-                                    {neuron.id}
+                                    {neuron.id-1}
                                 </Grid>
                                 <Grid item xs={2} className={classes.gridCell}>
                                     {<img src={neuron.img} className={classes.card}/>}

@@ -15,6 +15,7 @@ import SelectInput from '@material-ui/core/Select/SelectInput';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import HearingIcon from '@material-ui/icons/Hearing';
 import Autocomplete from '@material-ui/lab/Autocomplete';
+import CardList from '../../Components/CardList';
 
 const customColors = {true: {r: 31, g: 147, b: 195}, false: {r: 255, g: 255, b: 255}}
 
@@ -287,7 +288,7 @@ const transformHexArrayToBooleanArray = (hexArr) => {
 
 
 const Learning = (props) => {
-
+  const pid = props.match.params.id
   const [card, setCard] = React.useState(null)
   const [advice, setAdvice] = React.useState(false)
   const [className, setClassName] = React.useState('all')
@@ -397,8 +398,8 @@ const Learning = (props) => {
     setCardArray(cardSet)
   }
 
-  const create = (e) =>{
-    setCard({image: cardArray[e.target.id].image, id: cardArray[e.target.id].id, class: cardArray[e.target.id].class})
+  const create = (element) =>{
+    setCard(element)
   }
 
   const clean = (index) => (e) => {
@@ -589,46 +590,7 @@ const Learning = (props) => {
               <Button onClick={handleConfirm} className={classes.button} variant='contained' color='primary' disabled={!card || !category || !neuronSet}>Aprender</Button>
             </Grid>
             <Grid item xs={4}>
-              <Paper>
-                <Tabs
-                  value={cardTab}
-                  onChange={handleTabChange}
-                  indicatorColor="primary"
-                  textColor="primary"
-                  centered
-                  className={classes.tabsWrapper}
-                >
-                  <Tab label="Propios" />
-                  <Tab label="Todos los Usuarios" />
-                </Tabs>
-              </Paper>
-              <InputLabel className={clsx(classes.label, classes.blackText)} htmlFor="className">Filtrar por Clase</InputLabel>
-              <Select
-                value={className}
-                inputProps={{
-                  name: 'className',
-                  id: 'className',
-                }}
-                onChange={handleSelectChange}
-                fullWidth
-                className={classes.selectInput}
-              >
-                <MenuItem value={'all'}>Todos</MenuItem>
-                {classNames.map(n=>{
-                  return <MenuItem value={n} className={classes.menuItem}>{n}</MenuItem>
-                })}
-              </Select>
-              <div className={classes.panelWrapper}>
-                  <Grid container spacing={1}>
-                    {cardArray.map((card, index) =>{
-                      return(
-                        <Grid item xs={4} >
-                          <CCard className={classes.card} elementId={index} clickFunction={create} card={card}/>
-                        </Grid>
-                      )
-                    })}
-                  </Grid>
-              </div>
+              <CardList create={create}/>
             </Grid>
           </Grid>
         </div>
@@ -638,8 +600,6 @@ const Learning = (props) => {
 const mapStateToProps = (state) =>{
   return ({
     cards: state.Project.cards,
-    projectId: state.Project.projectId,
-    userId: 1,
     snbSight: state.Project.snbSight,
     snbHearing: state.Project.snbHearing,
     token: state.Auth.user ? state.Auth.user.token : null

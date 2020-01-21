@@ -133,7 +133,7 @@ const useStyles = makeStyles(theme=>({
         color: feelings
     },
     sliderWrapper: {
-      height: '95%'
+      height: '90%'
     },
     label: {
       fontWeight: 800
@@ -173,7 +173,7 @@ const Overview = (props) => {
                         />
                         <AccessibilityIcon className={classes.biology}/>
                         <Typography className={clsx(classes.biology, classes.label)}>Biology</Typography>
-
+                        <Typography className={clsx(classes.biology, classes.label)}>{desiredState.biology}</Typography>
                     </div>
                     <div className={classes.sliderWrapper}>
                         <CulturalSlider
@@ -187,7 +187,7 @@ const Overview = (props) => {
                         />
                         <MenuBookIcon className={classes.cultural}/>
                         <Typography className={clsx(classes.cultural, classes.label)}>Cultural</Typography>
-
+                        <Typography className={clsx(classes.cultural, classes.label)}>{desiredState.culture}</Typography>
                     </div>
                     <div className={classes.sliderWrapper}>
                         <FeelingsSlider
@@ -201,6 +201,7 @@ const Overview = (props) => {
                         />
                         <FavoriteIcon className={classes.feelings}/>
                         <Typography className={clsx(classes.feelings, classes.label)}>Feelings</Typography>
+                        <Typography className={clsx(classes.feelings, classes.label)}>{desiredState.feelings}</Typography>
                     </div>
                 </Paper>
             </Grid>
@@ -220,6 +221,7 @@ const Overview = (props) => {
                             />
                             <AccessibilityIcon className={classes.biology}/>
                             <Typography className={clsx(classes.biology, classes.label)}>Biology</Typography>
+                            <Typography className={clsx(classes.biology, classes.label)}>{Math.round(internalState.biology*100)/100}</Typography>
                         </div>
                         <div className={classes.sliderWrapper}>
                             <CulturalSlider
@@ -234,6 +236,7 @@ const Overview = (props) => {
                             />
                             <MenuBookIcon className={classes.cultural}/>
                             <Typography className={clsx(classes.cultural, classes.label)}>Cultural</Typography>
+                            <Typography className={clsx(classes.cultural, classes.label)}>{Math.round(internalState.culture*100)/100}</Typography>
                         </div>
                         <div className={classes.sliderWrapper}>
                             <FeelingsSlider
@@ -248,6 +251,7 @@ const Overview = (props) => {
                             />
                             <FavoriteIcon className={classes.feelings}/>
                             <Typography className={clsx(classes.feelings, classes.label)}>Feelings</Typography>
+                            <Typography className={clsx(classes.feelings, classes.label)}>{Math.round(internalState.feelings*100)/100}</Typography>
                         </div>
                     </Paper>
                 </Grid>
@@ -282,7 +286,7 @@ const Overview = (props) => {
                         <ListItemIcon>
                             <AccountTreeIcon/>
                         </ListItemIcon>
-                        <ListItemText primary={`Relacionales: ${254}`} />
+                        <ListItemText primary={`Relacionales: ${props.relNetwork.length}`} />
                     </ListItem>
                     <Divider/>
                     <ListItem button>
@@ -303,7 +307,8 @@ const mapStateToProps = (state) => {
     internalState: state.Project.internalState,
     desiredState: state.Project.desiredState,
     sight: state.Project.snbSight,
-    hearing: state.Project.snbHearing
+    hearing: state.Project.snbHearing,
+    relNetwork: state.Project.relNetwork
   })
 }
 

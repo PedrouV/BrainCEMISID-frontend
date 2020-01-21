@@ -80,11 +80,14 @@ const CardList = (props) => {
 
     useEffect(()=>{
     if(cardTab === 0){
-        if(props.token)
-        props.getCards()
+        if(props.token){
+          props.getCards()
+        }
     }
     else
-        props.getAllCards();
+        if(props.token){
+          props.getAllCards();
+        }
     }, [cardTab])
 
     useEffect(()=>{
@@ -96,7 +99,9 @@ const CardList = (props) => {
     }, [props.cards, className])
 
     useEffect(()=>{
-        props.getCards();
+        if(props.token){
+          props.getCards();
+        }
     }, [])
 
     const create = (e) =>{
@@ -159,6 +164,7 @@ const CardList = (props) => {
 
 const mapStateToProps = (state) => {
    return ({
+    token: state.Auth.user ? state.Auth.user.token : null,
     cards: state.Project.cards
    }) 
 }

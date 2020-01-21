@@ -349,11 +349,12 @@ export const getSNB = () => {
         }
         promises.push(Axios.get(`${RootRoute}/api/sight_net/?project_id=${getState().Project.projectId}`, config))
         promises.push(Axios.get(`${RootRoute}/api/hearing_net/?project_id=${getState().Project.projectId}`, config))
+        promises.push(Axios.get(`${RootRoute}/api/rel_net/?project_id=${getState().Project.projectId}`, config))
         Promise.all(promises).then(response=>{
-            dispatch({type: SET_SNB, payload: {sight: response[0].data, hearing: response[1].data}})
+            dispatch({type: SET_SNB, payload: {sight: response[0].data, hearing: response[1].data, relational: response[2].data}})
         }).catch(err=>{
             console.log(err);
-            dispatch({type: SET_SNB, payload: {sight: [], hearing: []}})
+            dispatch({type: SET_SNB, payload: {sight: [], hearing: [], relational: []}})
             if(err.response.status === 401){
                 dispatch({type: LOG_OUT})
                 let storage = window.localStorage;
