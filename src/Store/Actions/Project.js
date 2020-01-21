@@ -1,4 +1,4 @@
-import { SET_PROJECT_SUMMARY, SET_CARDS, SET_SNB } from "../types"
+import { SET_PROJECT_SUMMARY, SET_CARDS, SET_SNB, LOG_OUT } from "../types"
 import { RootRoute } from "../../Config/api"
 import Axios from "axios"
 
@@ -309,6 +309,14 @@ export const getUserCards = () => {
         }
         helperGetCards(`${RootRoute}/api/user_collection`, config).then(r=>{
             dispatch({type: SET_CARDS, payload: {cards: r, append: false}})
+        }).catch(e=>{
+            if(e.response.status === 401){
+                dispatch({type: LOG_OUT})
+                let storage = window.localStorage;
+                // remove from store
+                storage.removeItem('bcemisid-user');
+                storage.removeItem('bcemisid-userInfo');
+            }
         })
 
     }
@@ -321,6 +329,14 @@ export const getCards = () => {
         }
         helperGetCards(`${RootRoute}/api/all_collections/`, config).then(r=>{
             dispatch({type: SET_CARDS, payload: {cards: r, append: false}})
+        }).catch(e=>{
+            if(e.response.status === 401){
+                dispatch({type: LOG_OUT})
+                let storage = window.localStorage;
+                // remove from store
+                storage.removeItem('bcemisid-user');
+                storage.removeItem('bcemisid-userInfo');
+            }
         })
     }
 }
@@ -338,6 +354,13 @@ export const getSNB = () => {
         }).catch(err=>{
             console.log(err);
             dispatch({type: SET_SNB, payload: {sight: [], hearing: []}})
+            if(err.response.status === 401){
+                dispatch({type: LOG_OUT})
+                let storage = window.localStorage;
+                // remove from store
+                storage.removeItem('bcemisid-user');
+                storage.removeItem('bcemisid-userInfo');
+            }
         })
     }
 }

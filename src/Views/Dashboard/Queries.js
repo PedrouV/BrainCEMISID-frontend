@@ -160,6 +160,9 @@ const useStyles = makeStyles(theme=>({
   bolder: {
     fontWeight: 500,
     margin: theme.spacing(1,0)
+  },
+  section: {
+    margin:  theme.spacing(2,0)
   }
 }))
 
@@ -176,6 +179,7 @@ const Queries = (props) => {
   const [visualHearing, setVisualHearing] = React.useState(null)
   const [visualPattern, setVisualPattern] = React.useState(null)
   const [neuronSet, setNeuronSet] = React.useState([])
+  const [miss, setMiss] = React.useState(false)
 
   useEffect(()=>{
     setVisualHearing(null)
@@ -194,6 +198,7 @@ const Queries = (props) => {
   useEffect(()=>{
     if(props.recognizeStatus === 'success'){
       if(props.recognizeResult !== null){
+        setMiss(false)
         console.log('HIT')
         const hBooleanArray = (amplifyBooleanArrayImage(transformHexArrayToBooleanArray(props.recognizeResult.h_pattern), 12, 16, 16)) 
         const sBooleanArray = (amplifyBooleanArrayImage(transformHexArrayToBooleanArray(props.recognizeResult.s_pattern), 12, 16, 16))
@@ -206,6 +211,7 @@ const Queries = (props) => {
         })
       }else {
         console.log('MISS')
+        setMiss(true)
       }
     }
   }, [props.recognizeStatus])
@@ -249,8 +255,12 @@ const Queries = (props) => {
                   {card && <EpisodeCard onRemove={clean} onStop={null} src={card.image} id={'selected-card'} zIndex={1}/>}
                 </div>
               </div>
-              {visualPattern && visualHearing && <Grid container>
+              {visualPattern && visualHearing && <div className={classes.section}>
+                <Grid container spacing={2}>
                   <Grid item xs={12}>
+                    <Divider/>
+                  </Grid>
+                  <Grid item xs={12} >
                     <Typography className={classes.bolder}>Pensamiento: </Typography>
                   </Grid>
                   <Grid item xs={4}>
@@ -269,7 +279,11 @@ const Queries = (props) => {
                       <img src={visualHearing}/> 
                     </div>
                   </Grid>
-                </Grid>}
+                </Grid>
+                </div> }
+                {miss && <div>
+                  <Typography>MISS: Este Patrón no se reconoce</Typography>
+                  </div>}
               {card && <Grid container spacing={2} className={classes.p80}>
                   <Grid item xs={12}>
                     <Divider/>

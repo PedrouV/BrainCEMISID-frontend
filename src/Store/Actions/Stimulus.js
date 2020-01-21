@@ -1,4 +1,4 @@
-import { RECOGNITION_SUCCESS, RECOGNITION_ATTEMPT } from "../types"
+import { RECOGNITION_SUCCESS, RECOGNITION_ATTEMPT, LOG_OUT } from "../types"
 import { RootRoute } from "../../Config/api"
 import { resizeImage, getBooleanArrayFromImageData, getBrainPatternFromBoleanArray } from './Project'
 import Axios from "axios"
@@ -40,7 +40,13 @@ export const Recognize = (card, data) => {
                 }
             }).catch(err=>{
                 console.log(err)
-
+                if(err.response.status === 401){
+                    dispatch({type: LOG_OUT})
+                    let storage = window.localStorage;
+                    // remove from store
+                    storage.removeItem('bcemisid-user');
+                    storage.removeItem('bcemisid-userInfo');
+                }
             })
         });
     }

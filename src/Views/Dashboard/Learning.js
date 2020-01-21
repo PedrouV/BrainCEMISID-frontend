@@ -348,6 +348,7 @@ const Learning = (props) => {
 
   useEffect(()=>{
     createVisualHearing((props.snbHearing.length)+1)
+    setCategory(`SNB_H${props.snbHearing.length+1}`)
     let arr = []
     props.snbHearing.forEach(neuron=>{
       arr.push({title: JSON.parse(neuron.knowledge)._class , pattern: JSON.parse(neuron.knowledge)._pattern})
@@ -484,7 +485,7 @@ const Learning = (props) => {
                 <div className={classes.patternWrapper}>
                   <Typography className={classes.patternText}><HearingIcon/><br/>Categoría<br/>{category}</Typography>
                   {visualHearing && <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-end',}}>
-                    <Autocomplete
+                    {/* <Autocomplete
                       freeSolo
                       onChange={changeCategory}
                       className={classes.autocompleteField} 
@@ -503,7 +504,7 @@ const Learning = (props) => {
 
                         />
                       )}
-                    />
+                    /> */}
                     <img src={visualHearing} className={classes.visualHearing}/>
                     </div>}
                 </div>

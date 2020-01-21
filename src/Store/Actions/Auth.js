@@ -81,7 +81,14 @@ export const getUserProjects = () => {
             })
             dispatch({type: SET_PROJECTS, payload})
         }).catch(e=>{
-            console.log(e)
+            console.log(e.response)
+            if(e.response.status === 401){
+                dispatch({type: LOG_OUT})
+                let storage = window.localStorage;
+                // remove from store
+                storage.removeItem('bcemisid-user');
+                storage.removeItem('bcemisid-userInfo');
+            }
         })
     }
 }
@@ -90,7 +97,7 @@ export const logOut = () => {
     return (dispatch, getState) => {
         dispatch({type: LOG_OUT})
         let storage = window.localStorage;
-        // get from store
+        // remove from store
         storage.removeItem('bcemisid-user');
         storage.removeItem('bcemisid-userInfo');
     }
