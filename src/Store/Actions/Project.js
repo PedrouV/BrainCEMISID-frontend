@@ -240,8 +240,8 @@ export const Learn = (card, data) => {
                     hearing_pattern: hearingPattern,
                     hearing_class: data.category.toLowerCase(),
                     sight_pattern: sightPattern,
-                    intentions_input: [data.bfc.biology, data.bfc.feelings, data.bfc.culture],
-                    desired_intentions_input: [getState().Project.desiredState.biology, getState().Project.desiredState.feelings, getState().Project.desiredState.culture],
+                    intentions_input: [data.bfc.biology, data.bfc.culture, data.bfc.feelings],
+                    desired_intentions_input: [getState().Project.desiredState.biology, getState().Project.desiredState.culture, getState().Project.desiredState.feelings],
                     image_id: data.cardId,
                     rename: true,
                     set: data.set
@@ -253,11 +253,12 @@ export const Learn = (card, data) => {
                 let promises = [];
                 promises.push(Axios.get(`${RootRoute}/api/sight_net/?project_id=${getState().Project.projectId}`, config))
                 promises.push(Axios.get(`${RootRoute}/api/hearing_net/?project_id=${getState().Project.projectId}`, config))
+                promises.push(Axios.get(`${RootRoute}/api/rel_net/?project_id=${getState().Project.projectId}`, config))
                 Promise.all(promises).then(response=>{
-                    dispatch({type: SET_SNB, payload: {sight: response[0].data, hearing: response[1].data}})
+                    dispatch({type: SET_SNB, payload: {sight: response[0].data, hearing: response[1].data, relational: response[2]}})
                 }).catch(err=>{
                     console.log(err);
-                    dispatch({type: SET_SNB, payload: {sight: [], hearing: []}})
+                    dispatch({type: SET_SNB, payload: {sight: [], hearing: [], relational: []}})
                 })
 
             })
