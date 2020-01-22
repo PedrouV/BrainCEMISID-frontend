@@ -5,10 +5,16 @@ import Slider from '@material-ui/core/Slider';
 import { withStyles } from '@material-ui/styles';
 import CardList from '../../Components/CardList'
 import EpisodeCard from '../../Components/EpisodeCard'
+import {biology, cultural, feelings} from '../../Components/colors'
 import { resizeImage, getBooleanArrayFromImageData, createImageFromBooleanArray, amplifyBooleanArrayImage, transformHexArrayToBooleanArray } from '../../Store/Actions/Project';
 import { Recognize } from '../../Store/Actions/Stimulus';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import HearingIcon from '@material-ui/icons/Hearing';
+import clsx from 'clsx'
+import FavoriteIcon from '@material-ui/icons/Favorite';
+import AccessibilityIcon from '@material-ui/icons/Accessibility';
+import MenuBookIcon from '@material-ui/icons/MenuBook';
+
 
 const BiologySlider = withStyles({
   root: {
@@ -157,18 +163,36 @@ const useStyles = makeStyles(theme=>({
   icon: {
     marginBottom: theme.spacing(1)
   },
+  labelIcon: {
+    marginRight: theme.spacing(1)
+  },
   bolder: {
     fontWeight: 500,
     margin: theme.spacing(1,0)
   },
   section: {
     margin:  theme.spacing(2,0)
+  },
+  biology: {
+    color: biology,
+  },
+  cultural: {
+    color: cultural,
+  },
+  feelings: {
+    color: feelings
+  },
+  label: {
+    fontWeight: 800,
+    display: 'flex',
+    alignItems: 'center'
   }
 }))
 
 
 const Queries = (props) => {
 
+  const {bcf} = props;
   const [card, setCard] = React.useState(null)
   const [biology, setBiology] = React.useState(0)
   const [culture, setCulture] = React.useState(0)
@@ -303,7 +327,7 @@ const Queries = (props) => {
                       marks={true}
                       min={1}
                       max={100}
-                      valueLabelDisplay='on'
+                      valueLabelDisplay='auto'
                       valueLabelFormat={valuetext}
                       onChange={changeTolerance}
                     />
@@ -322,7 +346,7 @@ const Queries = (props) => {
                 variant='outlined'
               />
               <BiologySlider
-                defaultValue={67}
+                defaultValue={bcf.biology*100}
                 getAriaValueText={valuetext}
                 aria-labelledby="discrete-slider-small-steps"
                 disabled={true}
@@ -331,8 +355,9 @@ const Queries = (props) => {
                 max={100}
                 valueLabelDisplay="auto"
               />
+              <Typography className={clsx(classes.label, classes.biology)}><AccessibilityIcon className={classes.labelIcon}/>Biology: {Math.round(bcf.biology*100)/100}</Typography>
               <CulturalSlider
-                defaultValue={80}
+                defaultValue={bcf.culture*100}
                 getAriaValueText={valuetext}
                 aria-labelledby="discrete-slider-small-steps"
                 disabled={true}
@@ -341,8 +366,9 @@ const Queries = (props) => {
                 max={100}
                 valueLabelDisplay="auto"
               />
+              <Typography className={clsx(classes.label, classes.cultural)}><MenuBookIcon className={classes.labelIcon}/>Cultural: {Math.round(bcf.culture*100)/100}</Typography>
               <FeelingsSlider
-                defaultValue={40}
+                defaultValue={bcf.feelings*100}
                 getAriaValueText={valuetext}
                 aria-labelledby="discrete-slider-small-steps"
                 disabled={true}
@@ -351,6 +377,7 @@ const Queries = (props) => {
                 max={100}
                 valueLabelDisplay="auto"
               />
+              <Typography className={clsx(classes.label, classes.feelings)}><FavoriteIcon className={classes.labelIcon}/>Feelings: {Math.round(bcf.feelings*100)/100}</Typography>
               <Button onClick={handleConfirm} className={classes.button} variant='contained' color='primary'>Reconocer</Button>
             </Grid>
             <Grid item xs={4}>
@@ -366,7 +393,8 @@ const mapStateToProps = (state) =>{
   return ({
     cards: state.Project.cards,
     recognizeStatus: state.Stimulus.recognizeStatus,
-    recognizeResult: state.Stimulus.recognizeResult, 
+    recognizeResult: state.Stimulus.recognizeResult,
+    bcf: state.Project.internalState
   })
 }
 
