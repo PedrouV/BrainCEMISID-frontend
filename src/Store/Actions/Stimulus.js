@@ -1,4 +1,4 @@
-import { RECOGNITION_SUCCESS, RECOGNITION_ATTEMPT, LOG_OUT } from "../types"
+import { RECOGNITION_SUCCESS, RECOGNITION_ATTEMPT, LOG_OUT, SET_INTERNAL_STATUS } from "../types"
 import { RootRoute } from "../../Config/api"
 import { resizeImage, getBooleanArrayFromImageData, getBrainPatternFromBoleanArray } from './Project'
 import Axios from "axios"

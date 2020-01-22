@@ -1,5 +1,5 @@
 import {
-    SIGN_IN_USER, SET_PROJECT_SUMMARY, SET_CARDS, SET_SNB
+    SIGN_IN_USER, SET_PROJECT_SUMMARY, SET_CARDS, SET_SNB, RECOGNITION_SUCCESS
 } from '../types.js'
 import {n1, n2, n3, n4, n5, n6, n7, n8, n9, n0} from '../../Components/PreloadedCardImages'
 
@@ -115,6 +115,9 @@ const ProjectReducer = (state = initialState, action) =>{
             newState.snbHearing = action.payload.hearing;
             newState.snbSight = action.payload.sight;
             newState.relNetwork = action.payload.relational;
+            return newState;
+        case RECOGNITION_SUCCESS:
+            newState.internalState = {biology: action.payload.biology, culture: action.payload.culture, feelings: action.payload.feelings}
             return newState;
         default:
             return newState

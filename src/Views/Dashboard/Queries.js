@@ -347,6 +347,7 @@ const Queries = (props) => {
               />
               <BiologySlider
                 defaultValue={bcf.biology*100}
+                value={bcf.biology*100}
                 getAriaValueText={valuetext}
                 aria-labelledby="discrete-slider-small-steps"
                 disabled={true}
@@ -358,6 +359,7 @@ const Queries = (props) => {
               <Typography className={clsx(classes.label, classes.biology)}><AccessibilityIcon className={classes.labelIcon}/>Biology: {Math.round(bcf.biology*100)/100}</Typography>
               <CulturalSlider
                 defaultValue={bcf.culture*100}
+                value={bcf.culture*100}
                 getAriaValueText={valuetext}
                 aria-labelledby="discrete-slider-small-steps"
                 disabled={true}
@@ -369,6 +371,7 @@ const Queries = (props) => {
               <Typography className={clsx(classes.label, classes.cultural)}><MenuBookIcon className={classes.labelIcon}/>Cultural: {Math.round(bcf.culture*100)/100}</Typography>
               <FeelingsSlider
                 defaultValue={bcf.feelings*100}
+                value={bcf.feelings*100}
                 getAriaValueText={valuetext}
                 aria-labelledby="discrete-slider-small-steps"
                 disabled={true}
