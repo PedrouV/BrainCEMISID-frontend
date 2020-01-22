@@ -1,5 +1,5 @@
 import {
-    SIGN_IN_USER, SET_PROJECT_SUMMARY, SET_CARDS, SET_SNB, RECOGNITION_SUCCESS
+    SIGN_IN_USER, SET_PROJECT_SUMMARY, SET_CARDS, SET_SNB, RECOGNITION_SUCCESS, SET_DESIRED_STATE
 } from '../types.js'
 import {n1, n2, n3, n4, n5, n6, n7, n8, n9, n0} from '../../Components/PreloadedCardImages'
 
@@ -82,7 +82,8 @@ const initialState = {
     loadingCards: false,
     snbHearing: [],
     snbSight: [],
-    relNetwork: []
+    relNetwork: [],
+    episodicMemory: []
 }
 
 const ProjectReducer = (state = initialState, action) =>{
@@ -118,6 +119,9 @@ const ProjectReducer = (state = initialState, action) =>{
             return newState;
         case RECOGNITION_SUCCESS:
             newState.internalState = {biology: action.payload.biology, culture: action.payload.culture, feelings: action.payload.feelings}
+            return newState;
+        case SET_DESIRED_STATE:
+            newState.desiredState = action.payload;
             return newState;
         default:
             return newState

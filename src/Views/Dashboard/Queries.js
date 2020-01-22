@@ -194,9 +194,6 @@ const Queries = (props) => {
 
   const {bcf} = props;
   const [card, setCard] = React.useState(null)
-  const [biology, setBiology] = React.useState(0)
-  const [culture, setCulture] = React.useState(0)
-  const [feelings, setFeelings] = React.useState(0)
   const [preview, setPreview] = React.useState(null)
   const [tolerance, setTolerance] = React.useState(0.1)
   const [colorLimit, setColorLimit] = React.useState(229.5)

@@ -1,4 +1,4 @@
-import { SET_PROJECT_SUMMARY, SET_CARDS, SET_SNB, LOG_OUT } from "../types"
+import { SET_PROJECT_SUMMARY, SET_CARDS, SET_SNB, LOG_OUT, SET_DESIRED_STATE } from "../types"
 import { RootRoute } from "../../Config/api"
 import Axios from "axios"
 
@@ -338,6 +338,21 @@ export const getCards = () => {
                 storage.removeItem('bcemisid-user');
                 storage.removeItem('bcemisid-userInfo');
             }
+        })
+    }
+}
+
+export const saveDesiredState = (bcf) => {
+    return (dispatch, getState) => {
+        const config = {
+            headers: {'Authorization': 'token '+getState().Auth.user.token }
+        }
+        const data = bcf;
+        Axios.post(`${RootRoute}/api/desired_state/?project_id=${getState().Project.projectId}`, data ,config).then(res=>{
+            console.log(res.data);
+            dispatch({type: SET_DESIRED_STATE, payload: res.data})
+        }).catch(err=>{
+
         })
     }
 }
