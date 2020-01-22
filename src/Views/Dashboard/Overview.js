@@ -282,7 +282,7 @@ const Overview = (props) => {
                         <ListItemText primary={`Oído: ${props.hearing.length}`} />
                     </ListItem>
                     <Divider/>
-                    <ListItem button>
+                    <ListItem button component={RLink} to={`/dashboard/${projectId}/relational-network`}>
                         <ListItemIcon>
                             <AccountTreeIcon/>
                         </ListItemIcon>
