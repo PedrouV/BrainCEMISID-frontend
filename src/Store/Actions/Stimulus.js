@@ -40,13 +40,13 @@ export const Recognize = (card, data) => {
                 }
             }).catch(err=>{
                 console.log(err)
-                if(err.response.status === 401){
-                    dispatch({type: LOG_OUT})
-                    let storage = window.localStorage;
-                    // remove from store
-                    storage.removeItem('bcemisid-user');
-                    storage.removeItem('bcemisid-userInfo');
-                }
+                // if(err.response.status === 401){
+                //     dispatch({type: LOG_OUT})
+                //     let storage = window.localStorage;
+                //     // remove from store
+                //     storage.removeItem('bcemisid-user');
+                //     storage.removeItem('bcemisid-userInfo');
+                // }
             })
         });
     }

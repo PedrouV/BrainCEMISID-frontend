@@ -404,13 +404,6 @@ const mapDispatchToProps = (dispatch) =>{
       console.log({card, data});
       dispatch(Recognize(card, data))
     },
-    // getCards: () => {
-    //   dispatch(getUserCards());
-    // },
-    // getAllCards: () => {
-    //   dispatch(getCards())
-    // },
-
   })
 }
 
