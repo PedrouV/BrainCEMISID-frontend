@@ -1,13 +1,23 @@
 import React from 'react'
 import {connect} from 'react-redux'
-import Draggable, {DraggableCore} from 'react-draggable'; // Both at the same time
-import { makeStyles, Button, IconButton, Grid, Card, Typography } from '@material-ui/core';
-import CloseIcon from '@material-ui/icons/Close';
-import EpisodeCard from '../../Components/EpisodeCard';
-import {n1, n2, n3, n4, n5, n6, n7, n8, n9, n0} from '../../Components/PreloadedCardImages'
+import { makeStyles, Button, IconButton, Grid, Card, Typography, Divider } from '@material-ui/core';
 import Slider from '@material-ui/core/Slider';
 import { withStyles } from '@material-ui/styles';
+import CardList from '../../Components/CardList'
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import CloseIcon from '@material-ui/icons/Close'
+import EditIcon from '@material-ui/icons/Edit';
+import clsx from 'clsx'
+import FavoriteIcon from '@material-ui/icons/Favorite';
+import AccessibilityIcon from '@material-ui/icons/Accessibility';
+import MenuBookIcon from '@material-ui/icons/MenuBook';
+import {biology, cultural, feelings} from '../../Components/colors'
+import { useEffect } from 'react';
+import { getBooleanArrayFromImageData, resizeImage, createImageFromBooleanArray, amplifyBooleanArrayImage } from '../../Store/Actions/Project';
+import { LiveEpisode } from '../../Store/Actions/Stimulus';
 
+
+const grid = 8;
 
 const BiologySlider = withStyles({
   root: {
@@ -108,100 +118,209 @@ const FeelingsSlider = withStyles({
   },
 })(Slider);
 
+const reorder = (list, startIndex, endIndex) => {
+  const result = Array.from(list);
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed);
+
+  return result;
+};
+
+const useStyles = makeStyles(theme=>({
+  root: {
+    padding: theme.spacing(4)
+  },
+  p80:{
+    width: "80%"
+  },
+  settingsWrapper: {
+    margin: theme.spacing(2,0)
+  },
+  settingWrapper: {
+    margin: theme.spacing(1,0)
+  },  
+  canvasWrapper: {
+    overflowX: 'auto',
+    overflowY: 'auto',
+    whiteSpace: 'nowrap',
+    maxWidth: '100%',
+    border: `2px #AAA solid`,
+    borderRadius: theme.spacing(1)
+  },
+  grid: {
+    maxHeight: '85vh'
+  },
+  panelWrapper: {
+    overflowX: 'auto',
+    overflowY: 'auto',
+    whiteSpace: 'nowrap',
+    maxWidth: '100%',
+    maxHeight: '82vh',
+    height: '100%',
+    border: `8px ${theme.palette.primary.main} solid`,
+    borderRadius: theme.spacing(1),
+    padding: theme.spacing(2)
+  },
+  card: {
+    paddingTop: '100%'
+  },
+  button: {
+    margin: theme.spacing(4,0)
+  },
+  innerImage: {
+    minWidth: '100%',
+    height: '100%',
+  },
+  labelIcon: {
+    marginRight: theme.spacing(1)
+  },
+  label: {
+    fontWeight: 500,
+    display: 'flex',
+    alignItems: 'center',
+  },
+  biology: {
+    color: biology,
+  },
+  cultural: {
+    color: cultural,
+  },
+  feelings: {
+    color: feelings
+  },  
+  preview: {
+    boxShadow: '0px 2px 1px -1px rgba(0,0,0,0.2), 0px 1px 1px 0px rgba(0,0,0,0.14), 0px 1px 3px 0px rgba(0,0,0,0.12)'
+  },
+  instructions: {
+    width: '80%',
+    margin: theme.spacing(1,0)
+  }
+}))
 
 const NewEpisode = (props) => {
 
-  const [episodesList, setEpisodesList] = React.useState([])
-  const [episodesListPositions, setEpisodesListPositions] = React.useState([])
-  const [sortedList, setSortedList] = React.useState([])
+  const getItemStyle = (isDragging, draggableStyle, image, id) => ({
+    // some basic styles to make the items look a bit nicer
+    position: 'relative',
+    userSelect: 'none',
+    padding: 0,
+    minWidth: '200px',
+    maxWidth: '200px',
+    maxHeight: '200px',
+    margin: `0 ${grid}px 0 0`,
+    overflow: 'hidden',
+    background: isDragging ? `linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url(${image})` : `url(${image})`,
+    backgroundSize: 'cover',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    borderRadius: grid,
+    border: selectedItem && id === selectedItem.id ? `#5ba8ee solid 2px` : 'none',  
+    // change background colour if dragging
+  
+    // styles we need to apply on draggables
+    ...draggableStyle,
+  });
+  
+  const getListStyle = isDraggingOver => ({
+    background: isDraggingOver ? '#000' : '#333',
+    display: 'flex',
+    padding: grid,
+    display: 'flex',
+    overflowX: 'auto',
+    width: '80%',
+    minHeight: `${grid*2+200}px`,
+    borderRadius: grid,
+  });
 
-  let list = []
-  const boxSize = 200;
-  const useStyles = makeStyles(theme=>({
-    root: {
-      padding: theme.spacing(4)
-    },  
-    canvas: {
-      maxHeight: `${180+theme.spacing(4)}px`,
-      height: `${180+theme.spacing(4)}px`,
-      display: 'flex',
-      flexWrap: 'nowrap',
-      minWidth: '100%',
-      overflowX: 'hidden',
-      overflowY: 'hidden',
-      whiteSpace: 'nowrap',
-      width: `${episodesList.length*200+(episodesList.length+1)*theme.spacing(1)}px`,
-      padding: theme.spacing(1), 
-      position: 'relative',
-      background: '#333',
-    },
-    canvasWrapper: {
-      overflowX: 'auto',
-      overflowY: 'auto',
-      whiteSpace: 'nowrap',
-      maxWidth: '100%',
-      border: `2px #AAA solid`,
-      borderRadius: theme.spacing(1)
-    },
-    grid: {
-      maxHeight: '85vh'
-    },
-    panelWrapper: {
-      overflowX: 'auto',
-      overflowY: 'auto',
-      whiteSpace: 'nowrap',
-      maxWidth: '100%',
-      maxHeight: '82vh',
-      height: '100%',
-      border: `2px ${theme.palette.primary.main} solid`,
-      borderRadius: theme.spacing(1),
-      padding: theme.spacing(2)
-    },
-    card: {
-      paddingTop: '100%'
-    },
-    button: {
-      margin: theme.spacing(4,0)
+  const [items, setItems] = React.useState([])
+  const [lastId, setLastId] = React.useState(items.length)
+  const [selectedItem, setSelectedItem] = React.useState(null)
+  const [preview, setPreview] = React.useState(null)
+  const [bcf, setBcf] = React.useState({biology: 0.5, culture: 0.5, feelings: 0.5})
+
+  useEffect(()=>{
+    if(selectedItem){
+      resizeImage(selectedItem.image, 16, 16).then(response=>{
+        let arr = getBooleanArrayFromImageData(response.imageData, selectedItem.colorLimit)
+        createImageFromBooleanArray(amplifyBooleanArrayImage(arr, 12, response.imageData.width, response.imageData.height),response.imageData.width*12, response.imageData.height*12).then(image=>{
+          setPreview(image)
+        })
+      }) 
+    }else {
+      setPreview(null)
     }
-  }))
+  },[selectedItem])
 
-  const create = (e) =>{
-    setEpisodesList([...episodesList, props.cards[e.target.id].image])
-    setEpisodesListPositions([...episodesListPositions, {position: null, index: episodesListPositions.length}])
+  const onDragEnd = (result) => {
+    // dropped outside the list
+    if (!result.destination) {
+      return;
+    }
+
+    const newItems = reorder(
+      items, 
+      result.source.index,
+      result.destination.index
+    );
+
+    setItems(newItems);
   }
 
-  const onStop = (e, ui) =>{
-    let canvas = document.getElementById('canvas')
-    let newList = []
-    for(let i = 0; i< canvas.children.length ; i++){
-      if(ui.node === canvas.children[i]){
-        console.log('eureka', i)
-        let obj = canvas.children[i];
-        var childPos = obj.offset;
-        console.log(canvas.children[i].offsetLeft + ui.lastX)
-        newList.push({position: canvas.children[i].offsetLeft + ui.lastX, index: i})
-      }else{
-        newList.push({position: episodesListPositions[i].position, index: i})
-      }
-      setEpisodesListPositions(newList)
-      let sorted = episodesListPositions
-      sorted = sorted.sort((a,b)=>{
-        return (a.position - b.position)
-      })
-      setSortedList(sorted)
-    }
+  const create = (e) =>{
+    console.log(e)
+    setItems([...items, {...e, id: ""+lastId, tolerance: 0.1, colorLimit: 255 - 254*0.1}])
+    setLastId(lastId+1);
   }
 
   const handleConfirm = (e) =>{
     e.preventDefault();
-    let orderedList = episodesListPositions.sort((a,b)=>{
-      return (a.position - b.position)
-    })
-    console.log(episodesListPositions, orderedList)
+    props.liveEpisode(items, bcf);
   }
 
   const valuetext = (value) => {
-    return `${value}°C`;
+    return `${value/100}`;
+  }
+
+  const edit = (id) => (e) => {
+    console.log(id)
+    const newSelectedItem = items.filter((item)=> (item.id === id))[0]
+    setSelectedItem(newSelectedItem)
+  }
+
+  const remove = (id) => (e) => {
+    let newList = [...items]
+    newList = newList.filter((item)=>(item.id !== id));
+    if(selectedItem && id === selectedItem.id){
+      setSelectedItem(null)
+    }
+    setItems(newList)
+  }
+
+  const handleSliderChange = (field) => (e,val) => {
+    let newBcf = {...bcf};
+    newBcf[field] = val/100;
+    console.log(newBcf)
+    setBcf(newBcf)
+  }
+
+  const changeTolerance = (e, newValue) => {
+    let newSelectedItem = {...selectedItem}
+    newSelectedItem.tolerance = newValue/100;
+    newSelectedItem.colorLimit = (255 - 254*newValue/100)
+    let newItems = [];
+    items.forEach(i=>{
+      if(i.id === selectedItem.id){
+        let newItem = {...i}
+        newItem.tolerance = newValue/100;
+        newItem.colorLimit = (255 - 254*newValue/100)
+        newItems.push(newItem)
+      }else{
+        newItems.push(i)
+      }
+    })
+    setItems(newItems)
+    setSelectedItem(newSelectedItem)
   }
 
     const classes = useStyles();
@@ -209,58 +328,112 @@ const NewEpisode = (props) => {
         <div className={classes.root}>
           <Grid container spacing={2} className={classes.grid}>
             <Grid item xs={8}>
-              <div className={classes.canvasWrapper}>
-                <div className={classes.canvas} id='canvas'>
-                  {episodesList.map((episode, index)=>{
-                    return(<EpisodeCard onStop={onStop} src={episode} key={index} id={index} zIndex={sortedList.findIndex((el)=>el.index === index) === -1 ? 1 :  sortedList.findIndex((el)=>el.index === index)*10}/>)
-                  })}
-                </div>
-              </div>
+              <DragDropContext onDragEnd={onDragEnd}>
+                <Droppable droppableId="droppable" direction="horizontal">
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      style={getListStyle(snapshot.isDraggingOver)}
+                      {...provided.droppableProps}
+                    >
+                      {items.map((item, index) => (
+                        <Draggable key={item.id} draggableId={item.id} index={index}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              style={getItemStyle(
+                                snapshot.isDragging,
+                                provided.draggableProps.style,
+                                item.image,
+                                item.id
+                              )}
+                            >
+                                <div onClick={edit(item.id)} style={{position: 'absolute', width: '100%', height: '100%'}}></div>
+                              <div></div>
+                              <Button onClick={remove(item.id)} variant='contained' color='default' className={classes.close}><Typography><CloseIcon fontSize='small'/></Typography></Button>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+              <Typography className={classes.instructions}>Puedes arrastrar los eventos para cambiar su orden, así mismo, puedes previsualizar el patrón visual y modificar la tolerancia al color de cada una de las imágenes seleccionadas haciendo click en aquellas que desees</Typography>
+              {/* Visual Pattern Settings */ 
+                selectedItem && preview && <Grid spacing={2} container className={clsx(classes.p80, classes.settingsWrapper)}>
+                <Grid item xs={12}>
+                  <Divider/>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography className={classes.label}>Ajustes del Patrón Visual:</Typography>
+                </Grid>
+                <Grid item xs={6} className={classes.settingWrapper}>
+                  <Typography className={classes.label}>Previsualización</Typography>
+                  <img className={classes.preview} src={preview}/>
+                </Grid>
+                <Grid item xs={6} className={classes.settingWrapper}>
+                  <Typography className={classes.label}>Tolerancia al Color</Typography>
+                    <Slider
+                      defaultValue={selectedItem.tolerance*100}
+                      getAriaValueText={valuetext}
+                      marks={true}
+                      min={1}
+                      max={100}
+                      valueLabelDisplay='auto'
+                      valueLabelFormat={valuetext}
+                      onChange={changeTolerance}
+                      value={selectedItem.tolerance*100}
+                    />
+                </Grid>
+                <Grid item xs={12}>
+                  <Divider/>
+                </Grid>
+              </Grid>}
+              {/*Sliders*/}
               <BiologySlider
-                defaultValue={0}
+                defaultValue={bcf.biology*100}
                 getAriaValueText={valuetext}
                 aria-labelledby="discrete-slider-small-steps"
-                
+                valueLabelFormat={valuetext}
                 marks={true}
                 min={0}
                 max={100}
                 valueLabelDisplay="auto"
+                onChange={handleSliderChange('biology')}
               />
+              <Typography className={clsx(classes.label, classes.biology)}><AccessibilityIcon className={classes.labelIcon}/>Biology: {Math.round(bcf.biology*100)/100}</Typography>
               <CulturalSlider
-                defaultValue={0}
+                defaultValue={bcf.culture*100}
                 getAriaValueText={valuetext}
                 aria-labelledby="discrete-slider-small-steps"
-                
+                valueLabelFormat={valuetext}
                 marks={true}
                 min={0}
                 max={100}
                 valueLabelDisplay="auto"
+                onChange={handleSliderChange('culture')}
               />
+              <Typography className={clsx(classes.label, classes.cultural)}><MenuBookIcon className={classes.labelIcon}/>Culture: {Math.round(bcf.culture*100)/100}</Typography>
               <FeelingsSlider
-                defaultValue={0}
+                defaultValue={bcf.feelings*100}
                 getAriaValueText={valuetext}
                 aria-labelledby="discrete-slider-small-steps"
-                
+                valueLabelFormat={valuetext}
                 marks={true}
                 min={0}
                 max={100}
                 valueLabelDisplay="auto"
+                onChange={handleSliderChange('feelings')}
               />
-              <Button onClick={handleConfirm} className={classes.button} variant='contained' color='primary'>Vivir Episodio</Button>
+              <Typography className={clsx(classes.label, classes.feelings)}><FavoriteIcon className={classes.labelIcon}/>Feelings: {Math.round(bcf.feelings*100)/100}</Typography>
+              <Button disabled={items.length <= 0} onClick={handleConfirm} className={classes.button} variant='contained' color='primary'>Vivir Episodio</Button>
             </Grid>
             <Grid item xs={4}>
-              <div className={classes.panelWrapper}>
-                  <Grid container spacing={1}>
-                    {props.cards.map((card, index) =>{
-                      return(
-                        <Grid item xs={4} >
-                          <Card onClick={create} id={index} className={classes.card} style={{background: `url(${card.image})`, backgroundSize: 'cover'}}>
-                          </Card>
-                        </Grid>
-                      )
-                    })}
-                  </Grid>
-              </div>
+                  <CardList create={create}/>
             </Grid>
           </Grid>
         </div>
@@ -269,25 +442,16 @@ const NewEpisode = (props) => {
 
 const mapStateToProps = (state) =>{
   return ({
-    cards: [
-      {image: n1,},
-      {image: n2,},
-      {image: n3,},
-      {image: n4,},
-      {image: n5,},
-      {image: n6,},
-      {image: n7,},
-      {image: n8,},
-      {image: n9,},
-      {image: n0,},
-    ]
+    cards: state.Project.cards,
   })
 }
 
 const mapDispatchToProps = (dispatch) =>{
   return({
-
+    liveEpisode: (items, bcf) => {
+      dispatch(LiveEpisode(items, bcf));
+    }
   })
 }
 
-export default connect(mapStateToProps)(NewEpisode)
+export default connect(mapStateToProps, mapDispatchToProps)(NewEpisode)

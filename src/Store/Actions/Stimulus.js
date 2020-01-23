@@ -52,9 +52,9 @@ export const Recognize = (card, data) => {
     }
 }
 
-export const CreateEpisode = () => {
-    return (dispatch) => {
-
+export const LiveEpisode = (items, bcf) => {
+    return (dispatch, getState) => {
+        console.log(items, bcf)
     }
 }
 
