@@ -14,6 +14,7 @@ import HomeIcon from '@material-ui/icons/Home';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import { ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
 import {Link as RouterLink} from 'react-router-dom'
+import UpdateIcon from '@material-ui/icons/Update';
 
 const Link = React.forwardRef((props, ref) => <RouterLink innerRef={ref} {...props} />);
 
@@ -51,6 +52,14 @@ export const PrimaryItems = (props) =>{
             </ListItemIcon>
             <ListItemText>
                 Episodios de Vida
+            </ListItemText>
+            </ListItem>
+            <ListItem button component={Link} to={`/dashboard/${pathId}/intentions`}>
+            <ListItemIcon>
+                <UpdateIcon/>
+            </ListItemIcon>
+            <ListItemText>
+                Intenciones
             </ListItemText>
             </ListItem>
             <ListItem button component={Link} to={`/dashboard/${pathId}/new-card`}>

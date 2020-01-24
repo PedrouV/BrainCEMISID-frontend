@@ -221,8 +221,10 @@ const Queries = (props) => {
       if(props.recognizeResult !== null){
         setMiss(false)
         console.log('HIT')
-        const hBooleanArray = (amplifyBooleanArrayImage(transformHexArrayToBooleanArray(props.recognizeResult.h_pattern), 12, 16, 16)) 
-        const sBooleanArray = (amplifyBooleanArrayImage(transformHexArrayToBooleanArray(props.recognizeResult.s_pattern), 12, 16, 16))
+        const h_pattern = JSON.parse(props.recognizeResult.h_knowledge)._pattern
+        const s_pattern = JSON.parse(props.recognizeResult.s_knowledge)._pattern
+        const hBooleanArray = (amplifyBooleanArrayImage(transformHexArrayToBooleanArray(h_pattern), 12, 16, 16)) 
+        const sBooleanArray = (amplifyBooleanArrayImage(transformHexArrayToBooleanArray(s_pattern), 12, 16, 16))
         let promises = []
         promises.push(createImageFromBooleanArray(hBooleanArray, 16*12, 16*12, {true: {r: 119, g: 221, b: 119}, false: {r: 239, g: 239, b: 239}})) 
         promises.push(createImageFromBooleanArray(sBooleanArray, 16*12, 16*12, {true: {r: 238, g: 154, b: 18}, false: {r: 239, g: 239, b: 239}}))
@@ -292,7 +294,7 @@ const Queries = (props) => {
                   </Grid>
                   <Grid item xs={4} className={classes.wrapper}>
                     <Typography className={classes.bolder}>Categoría</Typography>
-                    <Typography>{props.recognizeResult.hearing_class}</Typography>
+                    <Typography>{JSON.parse(props.recognizeResult.h_knowledge)._class}</Typography>
                   </Grid>
                   <Grid item xs={4}>
                     <div className={classes.wrapper}>

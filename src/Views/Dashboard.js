@@ -28,6 +28,7 @@ import { PrimaryItems, SecondaryItems, ExtraItems } from './Dashboard/MenuItems'
 import { connect } from 'react-redux';
 import { getSNB } from '../Store/Actions/Project';
 import { logOut } from '../Store/Actions/Auth';
+import Intentions from './Dashboard/Intentions';
 
 
 function Copyright() {
@@ -205,6 +206,7 @@ const Dashboard = (props) => {
             <Route exact path='/dashboard/:id/new-episode' component={NewEpisode}/>
             <Route exact path='/dashboard/:id/new-Card' component={NewCard}/>
             <Route exact path='/dashboard/:id/hearing' component={Hearing}/>
+            <Route exact path='/dashboard/:id/intentions' component={Intentions}/>
             <Route exact path='/dashboard/:id/relational-network' component={RelNetwork}/>
           </Switch>
       </main>

@@ -116,6 +116,7 @@ const ProjectReducer = (state = initialState, action) =>{
             newState.snbHearing = action.payload.hearing;
             newState.snbSight = action.payload.sight;
             newState.relNetwork = action.payload.relational;
+            newState.episodicMemory = action.payload.episodes;
             return newState;
         case RECOGNITION_SUCCESS:
             newState.internalState = {biology: action.payload.biology, culture: action.payload.culture, feelings: action.payload.feelings}

@@ -43,6 +43,7 @@ const RelNetwork = (props) => {
                 response.sindex = i;
             }
         }
+        return {hindex: hid, sindex: sid}
         return response
     }
 

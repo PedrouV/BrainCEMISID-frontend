@@ -23,8 +23,8 @@ export const Recognize = (card, data) => {
                     "hearing_pattern": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                     "hearing_class": "",
                     "sight_pattern": sightPattern,
-                    intentions_input: [0,0,0],
-                    "desired_intentions_input": [getState().Project.desiredState.biology, getState().Project.desiredState.feelings, getState().Project.desiredState.culture],
+                    "intentions_input": [0,0,0],
+                    "desired_intentions_input": [getState().Project.desiredState.biology, getState().Project.desiredState.culture, getState().Project.desiredState.feelings],
                 }],
                 mode:"EPISODES"
             }
@@ -40,13 +40,7 @@ export const Recognize = (card, data) => {
                 }
             }).catch(err=>{
                 console.log(err)
-                // if(err.response.status === 401){
-                //     dispatch({type: LOG_OUT})
-                //     let storage = window.localStorage;
-                //     // remove from store
-                //     storage.removeItem('bcemisid-user');
-                //     storage.removeItem('bcemisid-userInfo');
-                // }
+
             })
         });
     }
@@ -55,12 +49,136 @@ export const Recognize = (card, data) => {
 export const LiveEpisode = (items, bcf) => {
     return (dispatch, getState) => {
         console.log(items, bcf)
+        let reducedImagesPromises = []
+        items.forEach(item=>{
+            reducedImagesPromises.push(resizeImage(item.image, 16, 16));
+        })
+        const config = {
+            headers: {'Authorization': 'token '+getState().Auth.user.token }
+        }
+        Promise.all(reducedImagesPromises).then(images=>{
+            let sightPatterns = []
+            const hearing_pattern = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+            const hearing_class = ""
+            const intentions_input = [0,0,0]
+            const desired_intentions_input = [getState().Project.desiredState.biology, getState().Project.desiredState.culture, getState().Project.desiredState.feelings]
+            images.forEach((image, index)=>{
+                let boolArray = getBooleanArrayFromImageData(image.imageData, items[index].colorLimit)
+                let hexArray = getBrainPatternFromBoleanArray(boolArray)
+                sightPatterns.push(hexArray);
+            })
+            let BUM = []
+            let BIP = []
+            let CHECK = []
+            let CLACK = []
+            BUM.push({
+                hearing_pattern, 
+	            hearing_class,
+	            sight_pattern: hearing_class,
+	            intentions_input
+            })
+            sightPatterns.forEach((sp, index)=>{
+                if(index !== sightPatterns.length-2 && index !== sightPatterns.length-1){
+                    BIP.push({
+                        hearing_pattern,
+                        hearing_class,
+                        sight_pattern: sp,
+                        intentions_input
+                    })
+                }else if(index === sightPatterns.length-2){
+                    CHECK.push({
+                        hearing_pattern,
+                        hearing_class,
+                        sight_pattern: sp,
+                        intentions_input
+                    })
+                }else {
+                    CLACK.push({
+                        hearing_pattern,
+                        hearing_class,
+                        sight_pattern: sp,
+                        intentions_input: [bcf.biology, bcf.culture, bcf.feelings],
+                        image_id: -1,
+                        rename: 'false'
+                    })
+                }
+            })
+            const formatedData = {
+                BUM,
+                BIP,
+                CHECK,
+                CLACK,
+                mode: 'EPISODES'
+            }
+            Axios.put(`${RootRoute}/api/kernel/?project_id=${getState().Project.projectId}`, formatedData, config).then(r=>{
+                console.log(r)
+            }).catch(err=>{
+                console.log(err.response)
+            })
+        })
     }
 }
 
-export const GetIntentions = () => {
-    return (dispatch) => {
-
+export const GetIntentions = (items, bcf) => {
+    return (dispatch, getState) => {
+        console.log(items, bcf)
+        let reducedImagesPromises = []
+        items.forEach(item=>{
+            reducedImagesPromises.push(resizeImage(item.image, 16, 16));
+        })
+        const config = {
+            headers: {'Authorization': 'token '+getState().Auth.user.token }
+        }
+        Promise.all(reducedImagesPromises).then(images=>{
+            let sightPatterns = []
+            const hearing_pattern = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+            const hearing_class = ""
+            const intentions_input = [0,0,0]
+            const desired_intentions_input = [getState().Project.desiredState.biology, getState().Project.desiredState.culture, getState().Project.desiredState.feelings]
+            images.forEach((image, index)=>{
+                let boolArray = getBooleanArrayFromImageData(image.imageData, items[index].colorLimit)
+                let hexArray = getBrainPatternFromBoleanArray(boolArray)
+                sightPatterns.push(hexArray);
+            })
+            let BUM = []
+            let BIP = []
+            let CHECK = []
+            let CLACK = []
+            BUM.push({
+                hearing_pattern, 
+	            hearing_class,
+	            sight_pattern: hearing_class,
+	            intentions_input
+            })
+            sightPatterns.forEach((sp, index)=>{
+                if(index !== sightPatterns.length-1){
+                    BIP.push({
+                        hearing_pattern,
+                        hearing_class,
+                        sight_pattern: sp,
+                        intentions_input
+                    })
+                }else{
+                    CHECK.push({
+                        hearing_pattern,
+                        hearing_class,
+                        sight_pattern: sp,
+                        intentions_input
+                    })
+                }
+            })
+            const formatedData = {
+                BUM,
+                BIP,
+                CHECK,
+                mode: 'INTENTIONS'
+            }
+            Axios.put(`${RootRoute}/api/kernel/?project_id=${getState().Project.projectId}`, formatedData, config).then(r=>{
+                console.log(r)
+            }).catch(err=>{
+                console.log(err.response)
+            })
+        })
     }
 }
 
