@@ -230,57 +230,6 @@ export const CreateProject = (name) =>{
     }
 }
 
-export const Learn = (card, data) => {
-    return (dispatch, getState) => {
-        console.log(data, 'Este test me interesa')
-        resizeImage(card, 16, 16).then(response=>{
-            let arr = getBooleanArrayFromImageData(response.imageData, data.colorLimit)
-            let sightPattern = getBrainPatternFromBoleanArray(arr);
-            let hearingPattern = data.hearingPattern
-            const config = {
-                headers: {'Authorization': `token ${getState().Auth.user.token}` }
-            }
-            const formatedData = {
-                CLACK: [{
-                    hearing_pattern: hearingPattern,
-                    hearing_class: data.category.toLowerCase(),
-                    sight_pattern: sightPattern,
-                    intentions_input: [data.bfc.biology, data.bfc.culture, data.bfc.feelings],
-                    desired_intentions_input: [getState().Project.desiredState.biology, getState().Project.desiredState.culture, getState().Project.desiredState.feelings],
-                    image_id: data.cardId,
-                    rename: true,
-                    set: data.set
-                }],
-                mode: "EPISODES"
-            }
-            console.log(formatedData, config, getState().Project.projectId)
-            Axios.put(`${RootRoute}/api/kernel/?project_id=${getState().Project.projectId}`, formatedData, config).then(r=>{
-                let promises = [];
-                promises.push(Axios.get(`${RootRoute}/api/sight_net/?project_id=${getState().Project.projectId}`, config))
-                promises.push(Axios.get(`${RootRoute}/api/hearing_net/?project_id=${getState().Project.projectId}`, config))
-                promises.push(Axios.get(`${RootRoute}/api/rel_net/?project_id=${getState().Project.projectId}`, config))
-                promises.push(Axios.get(`${RootRoute}/api/episodicmemory/?project_id=${getState().Project.projectId}`, config))
-                Promise.all(promises).then(response=>{
-                    dispatch({type: SET_SNB, payload: {sight: response[0].data, hearing: response[1].data, relational: response[2].data, episodes: response[3].data[0].group_list}})
-                }).catch(err=>{
-                    console.log(err);
-                    dispatch({type: SET_SNB, payload: {sight: [], hearing: [], relational: [], episodes: []}})
-                })
-
-            })
-            // var palette    = this.getPaletteFromPixels(pixels, pixelCount, colorCount, quality, allowWhite)
-
-            // return palette;
-        })
-    }
-}
-
-export const Recognize = (card, data) => {
-    return (dispatch, getState) => {
-
-    }
-}
-
 export const SaveCard = (data) => {
     return (dispatch, getState) => {
         var bodyFormData = new FormData();

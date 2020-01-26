@@ -14,6 +14,9 @@ const useStyles = makeStyles(theme=>({
         justifyContent: 'center',
         alignItems: 'center',
         height: '80vh'
+    },
+    adjustedWrapper: {
+        padding: '10vh 0 0 0 !important',
     }
 }))
 
@@ -34,7 +37,7 @@ const ImageRoom = (props) => {
                 <Grid item xs={6} className={classes.gridStyle}>
                     <ImageSettings image={image}/>
                 </Grid>
-                <Grid item xs={3} >
+                <Grid item xs={3} className={classes.adjustedWrapper} >
                     <AdjustedCardList create={setImageToAdjust}/>
                 </Grid>
             </Grid>

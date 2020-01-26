@@ -1,9 +1,10 @@
-import { RECOGNITION_ATTEMPT, RECOGNITION_SUCCESS, RECOGNITION_FAILURE } from '../types.js'
+import { RECOGNITION_ATTEMPT, RECOGNITION_SUCCESS, RECOGNITION_FAILURE, LEARN_ATTEMPT, LEARN_SUCCESS, LEARN_FAILURE } from '../types.js'
 
 
 const initialState = {
     recognizeStatus: 'none',
-    recognizeResult: {}
+    recognizeResult: {},
+    learnStatus: 'none'
 }
 
 const StimulusReducer = (state = initialState, action) =>{
@@ -20,6 +21,16 @@ const StimulusReducer = (state = initialState, action) =>{
         case RECOGNITION_SUCCESS:
             newState.recognizeStatus = 'success'
             newState.recognizeResult = action.payload
+            return newState
+        case LEARN_ATTEMPT:
+            newState.learnStatus = 'loading'
+            return newState
+        case LEARN_SUCCESS:
+            newState.learnStatus = 'success'
+            return newState
+        case LEARN_FAILURE:
+            newState.learnStatus = 'failure'
+            return newState
         default:
             return newState
     }

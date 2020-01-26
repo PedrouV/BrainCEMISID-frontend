@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, Fragment } from 'react'
 import {connect} from 'react-redux'
 import { makeStyles, Button, IconButton, Grid, Card, Typography, Divider, TextField, DialogTitle, DialogContent, DialogActions, Dialog } from '@material-ui/core';
 import Slider from '@material-ui/core/Slider';
@@ -14,6 +14,7 @@ import clsx from 'clsx'
 import FavoriteIcon from '@material-ui/icons/Favorite';
 import AccessibilityIcon from '@material-ui/icons/Accessibility';
 import MenuBookIcon from '@material-ui/icons/MenuBook';
+import AdjustedCardList from '../../Components/AdjustedCardList';
 
 
 const BiologySlider = withStyles({
@@ -120,20 +121,33 @@ const useStyles = makeStyles(theme=>({
     padding: theme.spacing(4)
   },  
   canvas: {
-    maxHeight: `${200}px`,
-    height: `${200}px`,
+    maxHeight: `${192}px`,
+    height: `${192}px`,
     display: 'flex',
-    width: `${200}px`,
+    width: `${192}px`,
     position: 'relative',
-    background: '#333',
     borderRadius: theme.spacing(1),
     border: `2px #AAA solid`,
+    alignSelf: 'flex-end',
+    boxShadow: '0px 2px 1px -1px rgba(0,0,0,0.2), 0px 1px 1px 0px rgba(0,0,0,0.14), 0px 1px 3px 0px rgba(0,0,0,0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    background: '#DDD'
   },
   canvasWrapper: {
     whiteSpace: 'nowrap',
     maxWidth: '100%',
     borderRadius: theme.spacing(1),
     
+  },
+  patternWrapper: {
+    display: 'flex',
+    alignItems: 'center'
+  },
+  patternText: {
+    maxWidth: '50%',
+    margin: theme.spacing(0,2),
+    textAlign: 'center'
   },
   grid: {
     maxHeight: '85vh'
@@ -186,7 +200,22 @@ const useStyles = makeStyles(theme=>({
     fontWeight: 800,
     display: 'flex',
     alignItems: 'center'
-  }
+  },
+  p80:{
+    width: '80%',
+    marginTop: theme.spacing(2)
+  },
+  innerGrid: {
+    display: 'flex',
+    justifyContent: 'center',
+    flexDirection: 'column',
+    margin: theme.spacing(2,0),
+    alignItems: 'center',
+
+  },
+  previewImage: {
+    boxShadow: '0px 2px 1px -1px rgba(0,0,0,0.2), 0px 1px 1px 0px rgba(0,0,0,0.14), 0px 1px 3px 0px rgba(0,0,0,0.12)',
+  },
 }))
 
 
@@ -204,12 +233,13 @@ const Queries = (props) => {
   const [open, setOpen] = React.useState(false)
 
   useEffect(()=>{
+    setOpen(false)
     setVisualHearing(null)
     setVisualPattern(null)
     if(card){
-      resizeImage(card.image, 200, 200).then(response=>{
-        let arr = getBooleanArrayFromImageData(response.imageData, colorLimit)
-        createImageFromBooleanArray(amplifyBooleanArrayImage(arr, 1, response.imageData.width, response.imageData.height),response.imageData.width*1, response.imageData.height*1).then(image=>{
+      resizeImage(card.image, 16, 16).then(response=>{
+        let arr = getBooleanArrayFromImageData(response.imageData, card.tolerances)
+        createImageFromBooleanArray(amplifyBooleanArrayImage(arr, 12, response.imageData.width, response.imageData.height),response.imageData.width*12, response.imageData.height*12).then(image=>{
           setPreview(image)
         })
       })
@@ -249,7 +279,7 @@ const Queries = (props) => {
   const handleConfirm = (e) =>{
     e.preventDefault();
     let data = {
-      colorLimit
+      tolerances: card.tolerances
     }
     props.recognize(card, data)
   }
@@ -262,10 +292,6 @@ const Queries = (props) => {
     return `${value/100}`;
   }
 
-  const changeTolerance = (e, newValue) => {
-    setTolerance(newValue/100);
-    setColorLimit(255 - 254*newValue/100)
-  }
 
   const neuronSetChanged = (e) => {
     setNeuronSet(e.target.value)
@@ -281,8 +307,11 @@ const Queries = (props) => {
           <Grid container spacing={2} className={classes.grid}>
           <Grid item xs={8}>
               <div className={classes.canvasWrapper}>
-                <div className={classes.canvas} id='canvas'>
-                  {card && <EpisodeCard onRemove={clean} onStop={null} src={card.image} id={'selected-card'} zIndex={1}/>}
+              <div className={classes.patternWrapper}>
+                  <Typography className={classes.patternText}><VisibilityIcon/></Typography>
+                  <div className={classes.canvas} id='canvas'>
+                    {card && <EpisodeCard onStop={null} src={card.image} id={'selected-card'} onRemove={clean} zIndex={1}/>}
+                  </div>
                 </div>
               </div>
               {visualPattern && visualHearing && card && <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
@@ -317,7 +346,7 @@ const Queries = (props) => {
                   </Button>
                 </DialogActions>
               </Dialog>}
-                {miss && <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
+                {card && miss && <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
                 <DialogTitle id="customized-dialog-title" onClose={handleClose}>
                   Pensamiento:
                 </DialogTitle>
@@ -332,36 +361,19 @@ const Queries = (props) => {
                   </Button>
                 </DialogActions>
               </Dialog>}
-              {card && <Grid container spacing={2} className={classes.p80}>
+              <Grid container spacing={2} className={classes.p80}>
                   <Grid item xs={12}>
                     <Divider/>
                   </Grid>
-                  <Grid item xs={12} className={classes.innerGrid}>
-                    <Typography className={classes.bolder}>Ajustes del Patrón Visual:</Typography>
-                  </Grid>
-                  <Grid  item xs={6} className={classes.innerGrid}>
-                    <Typography className={classes.sectionTitle}>Previsualización</Typography>
+                  {card && <Fragment> <Grid item xs={12} className={classes.innerGrid}>
+                    <Typography className={classes.bolder}>Previsualización del Patrón Neuronal</Typography>
                     <img src={preview} className={classes.previewImage}/>
                   </Grid>
-                  <Grid  item xs={6} className={classes.innerGrid}>
-                    <Typography className={classes.sectionTitle}>Tolerancia al Color</Typography>
-                    <Slider
-                      defaultValue={1}
-                      getAriaValueText={valuetext}
-                      marks={true}
-                      min={1}
-                      max={100}
-                      valueLabelDisplay='auto'
-                      valueLabelFormat={valuetext}
-                      onChange={changeTolerance}
-                    />
-                  </Grid>
                   <Grid item xs={12}>
                     <Divider/>
                   </Grid>
+                  </Fragment>}
                 </Grid>
-              }
-              {!card && <Divider/>}
               <TextField
                 className={classes.p80}
                 onChange={neuronSetChanged}
@@ -408,7 +420,7 @@ const Queries = (props) => {
               <Button onClick={handleConfirm} className={classes.button} variant='contained' color='primary'>Reconocer</Button>
             </Grid>
             <Grid item xs={4}>
-              <CardList create={create}/>
+              <AdjustedCardList addRedirection={true} create={create}/>
             </Grid>
             
           </Grid>

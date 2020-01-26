@@ -49,7 +49,10 @@ const CCard = (props) => {
     const classes = makeStyles(theme=>({
       root: {
         background: `url(${card.image})`, 
-        backgroundSize: 'cover' 
+        backgroundSize: 'cover',
+        '&:hover': {
+          cursor: 'pointer'
+        }
       }
     }))();
     return (<Card onClick={clickFunction} id={elementId} className={clsx(className, classes.root)}>

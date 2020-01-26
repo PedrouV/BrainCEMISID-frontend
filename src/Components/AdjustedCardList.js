@@ -5,6 +5,9 @@ import clsx from 'clsx'
 import { useEffect } from 'react'
 import { getAdjustedCards } from '../Store/Actions/Project'
 import { RootRoute } from '../Config/api'
+import {Link as RouterLink} from 'react-router-dom'
+
+const Link = React.forwardRef((props, ref) => <RouterLink innerRef={ref} {...props} />);
 
 const useStyles = makeStyles(theme=>({
     root: {
@@ -23,6 +26,9 @@ const useStyles = makeStyles(theme=>({
     card: {
         paddingTop: '100%'
     },
+    link: {
+        color: theme.palette.secondary.main
+    }
 }))
 
 const CCard = (props) => {
@@ -39,7 +45,7 @@ const CCard = (props) => {
 
 const AdjustedCardList = (props) => {
     const classes = useStyles();
-    const {cards, projectId, token, adjustmentStatus} = props
+    const {cards, projectId, token, adjustmentStatus, addRedirection} = props
 
     useEffect(()=>{
         console.log('Project changed', projectId, token)
@@ -51,7 +57,7 @@ const AdjustedCardList = (props) => {
     const create = (e) => {
         if(props.create){
             const card = cards[e.target.id];
-            const data = {image: RootRoute+card.img, id: card.image, class: card.class, tolerances: {r: card.r_tolerance, g: card.g_tolerance, b: card.b_tolerance}}
+            const data = {image: RootRoute+card.img, id: card.image, class: card.name_class, tolerances: {r: card.r_tolerance, g: card.g_tolerance, b: card.b_tolerance}, category: card.name}
             props.create(data)
             console.log(data)
         }else{
@@ -70,7 +76,8 @@ const AdjustedCardList = (props) => {
                 })
                 }
                 {cards.length === 0 &&
-                <Typography>No has hecho ajustes aún de ninguna imagen.</Typography>}
+                <Typography>Aún no has hecho ajustes de ninguna imagen.</Typography>}
+                {cards.length === 0 && addRedirection && projectId !== -1 && <Typography className={classes.link} component={Link} to={`/dashboard/${projectId}/image-room`}>Haz los ajustes acá</Typography>}
             </Grid>
         </div>
     )

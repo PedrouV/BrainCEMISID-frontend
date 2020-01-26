@@ -1,19 +1,60 @@
-import { RECOGNITION_SUCCESS, RECOGNITION_ATTEMPT } from "../types"
+import { RECOGNITION_SUCCESS, RECOGNITION_ATTEMPT, SET_SNB, LEARN_ATTEMPT, LEARN_SUCCESS, LEARN_FAILURE } from "../types"
 import { RootRoute } from "../../Config/api"
-import { resizeImage, getBooleanArrayFromImageData, getBrainPatternFromBoleanArray } from './Project'
+import { resizeImage, getBooleanArrayFromImageData, getBrainPatternFromBoleanArray, createImageFromBooleanArray, amplifyBooleanArrayImage } from './Project'
 import Axios from "axios"
 
-// export const Learn = () => {
-//     return (dispatch) => {
-
-//     }
-// }
+export const Learn = (card, data) => {
+    return (dispatch, getState) => {
+        console.log(data, 'Este test me interesa')
+        dispatch({type: LEARN_ATTEMPT})
+        resizeImage(card, 16, 16).then(response=>{
+            let arr = getBooleanArrayFromImageData(response.imageData, data.tolerances)
+            let sightPattern = getBrainPatternFromBoleanArray(arr);
+            let hearingPattern = data.hearingPattern
+            const config = {
+                headers: {'Authorization': `token ${getState().Auth.user.token}` }
+            }
+            const formatedData = {
+                CLACK: [{
+                    hearing_pattern: hearingPattern,
+                    hearing_class: data.category.toLowerCase(),
+                    sight_pattern: sightPattern,
+                    intentions_input: [data.bfc.biology, data.bfc.culture, data.bfc.feelings],
+                    desired_intentions_input: [getState().Project.desiredState.biology, getState().Project.desiredState.culture, getState().Project.desiredState.feelings],
+                    image_id: data.cardId,
+                    rename: true,
+                    set: data.set
+                }],
+                mode: "EPISODES"
+            }
+            console.log(formatedData, config, getState().Project.projectId)
+            Axios.put(`${RootRoute}/api/kernel/?project_id=${getState().Project.projectId}`, formatedData, config).then(r=>{
+                dispatch({type: LEARN_SUCCESS})
+                let promises = [];
+                promises.push(Axios.get(`${RootRoute}/api/sight_net/?project_id=${getState().Project.projectId}`, config))
+                promises.push(Axios.get(`${RootRoute}/api/hearing_net/?project_id=${getState().Project.projectId}`, config))
+                promises.push(Axios.get(`${RootRoute}/api/rel_net/?project_id=${getState().Project.projectId}`, config))
+                promises.push(Axios.get(`${RootRoute}/api/episodicmemory/?project_id=${getState().Project.projectId}`, config))
+                Promise.all(promises).then(response=>{
+                    dispatch({type: SET_SNB, payload: {sight: response[0].data, hearing: response[1].data, relational: response[2].data, episodes: response[3].data[0].group_list}})
+                }).catch(err=>{
+                    console.log(err);
+                    dispatch({type: SET_SNB, payload: {sight: [], hearing: [], relational: [], episodes: []}})
+                })
+                
+            }).catch(err=>{
+                console.log(err.response)
+                dispatch({type: LEARN_FAILURE})
+            })
+        })
+    }
+}
 
 export const Recognize = (card, data) => {
     return (dispatch, getState) => {
         dispatch({type: RECOGNITION_ATTEMPT})
         resizeImage(card.image, 16, 16).then(response=>{
-            let arr = getBooleanArrayFromImageData(response.imageData, data.colorLimit)
+            let arr = getBooleanArrayFromImageData(response.imageData, data.tolerances)
             let sightPattern = getBrainPatternFromBoleanArray(arr);
             const config = {
                 headers: {'Authorization': 'token '+getState().Auth.user.token }
