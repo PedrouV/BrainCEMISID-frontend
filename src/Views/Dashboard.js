@@ -29,6 +29,7 @@ import { connect } from 'react-redux';
 import { getSNB } from '../Store/Actions/Project';
 import { logOut } from '../Store/Actions/Auth';
 import Intentions from './Dashboard/Intentions';
+import ImageRoom from './Dashboard/ImageRoom';
 
 
 function Copyright() {
@@ -207,6 +208,7 @@ const Dashboard = (props) => {
             <Route exact path='/dashboard/:id/new-Card' component={NewCard}/>
             <Route exact path='/dashboard/:id/hearing' component={Hearing}/>
             <Route exact path='/dashboard/:id/intentions' component={Intentions}/>
+            <Route exact path='/dashboard/:id/image-room' component={ImageRoom}/>
             <Route exact path='/dashboard/:id/relational-network' component={RelNetwork}/>
           </Switch>
       </main>

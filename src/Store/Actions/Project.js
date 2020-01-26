@@ -1,4 +1,4 @@
-import { SET_PROJECT_SUMMARY, SET_CARDS, SET_SNB, LOG_OUT, SET_DESIRED_STATE } from "../types"
+import { SET_PROJECT_SUMMARY, SET_CARDS, SET_SNB, LOG_OUT, SET_DESIRED_STATE, SET_ADJUSTED_CARDS, ADJUST_CARD_ATTEMPT, ADJUST_CARD_SUCCESS, ADJUST_CARD_FAILURE } from "../types"
 import { RootRoute } from "../../Config/api"
 import Axios from "axios"
 
@@ -140,9 +140,14 @@ export const createImageFromBooleanArray = (arr, w = 16, h = 16, customColors = 
     })
 }
 
-export const getBooleanArrayFromImageData = (imgData, limit = colorLimit) => {
+const getColorLimit = (tolerances) => {
+    return {r: 255 - 255*tolerances.r, g: 255 - 255*tolerances.g, b: 255 - 255*tolerances.b}
+}
+
+export const getBooleanArrayFromImageData = (imgData, tolerances = {r: 0.1, g: 0.1, b: 0.1}) => {
     let booleanArray = []
     let rgba = {r: 0, g: 0, b: 0, a: 0}
+    const limits = getColorLimit(tolerances);
     imgData.data.forEach((value, index)=>{
         if(index%4 === 0)
             rgba.r = value;
@@ -152,7 +157,7 @@ export const getBooleanArrayFromImageData = (imgData, limit = colorLimit) => {
             rgba.b = value;
         if(index%4 === 3){
             rgba.a = value;
-            if((rgba.r > limit && rgba.g > limit && rgba.b > limit)){
+            if((rgba.r > limits.r || rgba.g > limits.g || rgba.b > limits.b)){
                 booleanArray.push(false)
             }else{
                 booleanArray.push(true);
@@ -256,7 +261,7 @@ export const Learn = (card, data) => {
                 promises.push(Axios.get(`${RootRoute}/api/rel_net/?project_id=${getState().Project.projectId}`, config))
                 promises.push(Axios.get(`${RootRoute}/api/episodicmemory/?project_id=${getState().Project.projectId}`, config))
                 Promise.all(promises).then(response=>{
-                    dispatch({type: SET_SNB, payload: {sight: response[0].data, hearing: response[1].data, relational: response[2].data, episodes: response[3].data}})
+                    dispatch({type: SET_SNB, payload: {sight: response[0].data, hearing: response[1].data, relational: response[2].data, episodes: response[3].data[0].group_list}})
                 }).catch(err=>{
                     console.log(err);
                     dispatch({type: SET_SNB, payload: {sight: [], hearing: [], relational: [], episodes: []}})
@@ -324,6 +329,42 @@ export const getUserCards = () => {
     }
 }
 
+export const getAdjustedCards = () => {
+    return (dispatch, getState) => {
+        const config = {
+            headers: {'Authorization': 'token '+getState().Auth.user.token }
+        }
+        Axios.get(`${RootRoute}/api/project_image_settings/?project_id=${getState().Project.projectId}`, config).then(response=>{
+            dispatch({type: SET_ADJUSTED_CARDS, payload: response.data})
+        }).catch(err=>{
+            console.log(err.response)
+        })
+    }
+}
+
+export const setCardSettings = (cardId, tolerances) => {
+    return (dispatch, getState) => {
+        dispatch({type: ADJUST_CARD_ATTEMPT})
+        const config = {
+            headers: {'Authorization': 'token '+getState().Auth.user.token }
+        }
+        const data = {
+            brain: getState().Project.projectId,
+            image: cardId,
+            r_tolerance: tolerances.r,
+            g_tolerance: tolerances.g,
+            b_tolerance: tolerances.b,
+        }
+        Axios.post(`${RootRoute}/api/images_settings_set/`, data, config).then(response=>{
+            console.log(response)
+            dispatch({type: ADJUST_CARD_SUCCESS})
+        }).catch(err=>{
+            console.log(err.response)
+            dispatch({type: ADJUST_CARD_FAILURE})
+        })
+    }
+}
+
 export const getCards = () => {
     return (dispatch, getState) => {
         const config = {
@@ -369,7 +410,7 @@ export const getSNB = () => {
         promises.push(Axios.get(`${RootRoute}/api/rel_net/?project_id=${getState().Project.projectId}`, config))
         promises.push(Axios.get(`${RootRoute}/api/episodicmemory/?project_id=${getState().Project.projectId}`, config))
         Promise.all(promises).then(response=>{
-            dispatch({type: SET_SNB, payload: {sight: response[0].data, hearing: response[1].data, relational: response[2].data, episodes: response[3].data}})
+            dispatch({type: SET_SNB, payload: {sight: response[0].data, hearing: response[1].data, relational: response[2].data, episodes: response[3].data[0].group_list}})
         }).catch(err=>{
             console.log(err);
             dispatch({type: SET_SNB, payload: {sight: [], hearing: [], relational: [], episodes: []}})

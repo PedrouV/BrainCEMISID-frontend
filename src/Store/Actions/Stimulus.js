@@ -1,4 +1,4 @@
-import { RECOGNITION_SUCCESS, RECOGNITION_ATTEMPT, LOG_OUT, SET_INTERNAL_STATUS } from "../types"
+import { RECOGNITION_SUCCESS, RECOGNITION_ATTEMPT } from "../types"
 import { RootRoute } from "../../Config/api"
 import { resizeImage, getBooleanArrayFromImageData, getBrainPatternFromBoleanArray } from './Project'
 import Axios from "axios"
@@ -35,6 +35,7 @@ export const Recognize = (card, data) => {
                     dispatch({type: RECOGNITION_SUCCESS, payload: r.data[0]})
                     //El patron fue reconocido
                 }else{
+                    console.log("Este sera el miss?")
                     dispatch({type: RECOGNITION_SUCCESS, payload: null})
                     //El patron no fue reconocido
                 }
@@ -110,6 +111,7 @@ export const LiveEpisode = (items, bcf) => {
                 CLACK,
                 mode: 'EPISODES'
             }
+            console.log(formatedData)
             Axios.put(`${RootRoute}/api/kernel/?project_id=${getState().Project.projectId}`, formatedData, config).then(r=>{
                 console.log(r)
             }).catch(err=>{
@@ -173,6 +175,7 @@ export const GetIntentions = (items, bcf) => {
                 CHECK,
                 mode: 'INTENTIONS'
             }
+            console.log(formatedData)
             Axios.put(`${RootRoute}/api/kernel/?project_id=${getState().Project.projectId}`, formatedData, config).then(r=>{
                 console.log(r)
             }).catch(err=>{

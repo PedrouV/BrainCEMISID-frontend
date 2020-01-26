@@ -15,6 +15,7 @@ import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import { ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
 import {Link as RouterLink} from 'react-router-dom'
 import UpdateIcon from '@material-ui/icons/Update';
+import WallpaperIcon from '@material-ui/icons/Wallpaper';
 
 const Link = React.forwardRef((props, ref) => <RouterLink innerRef={ref} {...props} />);
 
@@ -68,6 +69,14 @@ export const PrimaryItems = (props) =>{
             </ListItemIcon>
             <ListItemText>
                 Nueva Tarjeta
+            </ListItemText>
+            </ListItem>
+            <ListItem button component={Link} to={`/dashboard/${pathId}/image-room`}>
+            <ListItemIcon>
+                <WallpaperIcon/>
+            </ListItemIcon>
+            <ListItemText>
+                Ajuste de Imágenes
             </ListItemText>
             </ListItem>
         </Fragment>

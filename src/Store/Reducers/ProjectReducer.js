@@ -1,5 +1,5 @@
 import {
-    SIGN_IN_USER, SET_PROJECT_SUMMARY, SET_CARDS, SET_SNB, RECOGNITION_SUCCESS, SET_DESIRED_STATE
+    SIGN_IN_USER, SET_PROJECT_SUMMARY, SET_CARDS, SET_SNB, RECOGNITION_SUCCESS, SET_DESIRED_STATE, SET_ADJUSTED_CARDS, ADJUST_CARD_ATTEMPT, ADJUST_CARD_SUCCESS, ADJUST_CARD_FAILURE
 } from '../types.js'
 import {n1, n2, n3, n4, n5, n6, n7, n8, n9, n0} from '../../Components/PreloadedCardImages'
 
@@ -83,7 +83,9 @@ const initialState = {
     snbHearing: [],
     snbSight: [],
     relNetwork: [],
-    episodicMemory: []
+    episodicMemory: [],
+    adjustedCards: [],
+    adjustCardStatus: 'none'
 }
 
 const ProjectReducer = (state = initialState, action) =>{
@@ -119,11 +121,24 @@ const ProjectReducer = (state = initialState, action) =>{
             newState.episodicMemory = action.payload.episodes;
             return newState;
         case RECOGNITION_SUCCESS:
+            if(action.payload !== null)
             newState.internalState = {biology: action.payload.biology, culture: action.payload.culture, feelings: action.payload.feelings}
             return newState;
         case SET_DESIRED_STATE:
             newState.desiredState = action.payload;
             return newState;
+        case SET_ADJUSTED_CARDS:
+            newState.adjustedCards = action.payload;
+            return newState
+        case ADJUST_CARD_ATTEMPT:
+            newState.adjustCardStatus = 'loading'
+            return newState
+        case ADJUST_CARD_SUCCESS:
+            newState.adjustCardStatus = 'success'
+            return newState
+        case ADJUST_CARD_FAILURE:
+            newState.adjustCardStatus = 'failure'
+            return newState
         default:
             return newState
     }

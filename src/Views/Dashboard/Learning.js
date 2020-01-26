@@ -470,6 +470,10 @@ const Learning = (props) => {
 
   }
 
+  const newCategory = (e) => {
+    setCategory(e.target.value);
+  }
+
     const classes = useStyles();
 
     return (
@@ -506,6 +510,11 @@ const Learning = (props) => {
                         />
                       )}
                     /> */}
+                    <TextField
+                      onChange={newCategory}
+                      variant='outlined'
+                      label={'Categoría'}
+                    />
                     <img src={visualHearing} className={classes.visualHearing}/>
                     </div>}
                 </div>

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import {connect} from 'react-redux'
-import { makeStyles, Button, IconButton, Grid, Card, Typography, Divider, TextField } from '@material-ui/core';
+import { makeStyles, Button, IconButton, Grid, Card, Typography, Divider, TextField, DialogTitle, DialogContent, DialogActions, Dialog } from '@material-ui/core';
 import Slider from '@material-ui/core/Slider';
 import { withStyles } from '@material-ui/styles';
 import CardList from '../../Components/CardList'
@@ -201,14 +201,15 @@ const Queries = (props) => {
   const [visualPattern, setVisualPattern] = React.useState(null)
   const [neuronSet, setNeuronSet] = React.useState([])
   const [miss, setMiss] = React.useState(false)
+  const [open, setOpen] = React.useState(false)
 
   useEffect(()=>{
     setVisualHearing(null)
     setVisualPattern(null)
     if(card){
-      resizeImage(card.image, 16, 16).then(response=>{
+      resizeImage(card.image, 200, 200).then(response=>{
         let arr = getBooleanArrayFromImageData(response.imageData, colorLimit)
-        createImageFromBooleanArray(amplifyBooleanArrayImage(arr, 12, response.imageData.width, response.imageData.height),response.imageData.width*12, response.imageData.height*12).then(image=>{
+        createImageFromBooleanArray(amplifyBooleanArrayImage(arr, 1, response.imageData.width, response.imageData.height),response.imageData.width*1, response.imageData.height*1).then(image=>{
           setPreview(image)
         })
       })
@@ -231,10 +232,12 @@ const Queries = (props) => {
         Promise.all(promises).then(results=>{
           setVisualHearing(results[0])
           setVisualPattern(results[1])
+          setOpen(true)
         })
       }else {
         console.log('MISS')
         setMiss(true)
+        setOpen(true)
       }
     }
   }, [props.recognizeStatus])
@@ -268,6 +271,10 @@ const Queries = (props) => {
     setNeuronSet(e.target.value)
   }
 
+  const handleClose = (e) => {
+    setOpen(false)
+  }
+
     const classes = useStyles();
     return (
         <div className={classes.root}>
@@ -278,14 +285,13 @@ const Queries = (props) => {
                   {card && <EpisodeCard onRemove={clean} onStop={null} src={card.image} id={'selected-card'} zIndex={1}/>}
                 </div>
               </div>
-              {visualPattern && visualHearing && <div className={classes.section}>
+              {visualPattern && visualHearing && card && <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
+                <DialogTitle id="customized-dialog-title" onClose={handleClose}>
+                  Pensamiento:
+                </DialogTitle>
+                <DialogContent dividers>
+                <div className={classes.section}>
                 <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <Divider/>
-                  </Grid>
-                  <Grid item xs={12} >
-                    <Typography className={classes.bolder}>Pensamiento: </Typography>
-                  </Grid>
                   <Grid item xs={4}>
                     <div className={classes.wrapper}>
                       <VisibilityIcon className={classes.icon}/>
@@ -294,7 +300,7 @@ const Queries = (props) => {
                   </Grid>
                   <Grid item xs={4} className={classes.wrapper}>
                     <Typography className={classes.bolder}>Categoría</Typography>
-                    <Typography>{JSON.parse(props.recognizeResult.h_knowledge)._class}</Typography>
+                    <Typography>{props.recognizeResult && props.recognizeResult.h_knowledge ? JSON.parse(props.recognizeResult.h_knowledge)._class : ''}</Typography>
                   </Grid>
                   <Grid item xs={4}>
                     <div className={classes.wrapper}>
@@ -303,10 +309,29 @@ const Queries = (props) => {
                     </div>
                   </Grid>
                 </Grid>
-                </div> }
-                {miss && <div>
-                  <Typography>MISS: Este Patrón no se reconoce</Typography>
-                  </div>}
+                </div>
+                </DialogContent>
+                <DialogActions>
+                  <Button autoFocus onClick={handleClose} color="primary">
+                    OK
+                  </Button>
+                </DialogActions>
+              </Dialog>}
+                {miss && <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
+                <DialogTitle id="customized-dialog-title" onClose={handleClose}>
+                  Pensamiento:
+                </DialogTitle>
+                <DialogContent dividers>
+                <div className={classes.section}>
+                <Typography>MISS: Patrón Visual no reconocido.</Typography>
+                </div>
+                </DialogContent>
+                <DialogActions>
+                  <Button autoFocus onClick={handleClose} color="primary">
+                    OK
+                  </Button>
+                </DialogActions>
+              </Dialog>}
               {card && <Grid container spacing={2} className={classes.p80}>
                   <Grid item xs={12}>
                     <Divider/>
@@ -321,7 +346,7 @@ const Queries = (props) => {
                   <Grid  item xs={6} className={classes.innerGrid}>
                     <Typography className={classes.sectionTitle}>Tolerancia al Color</Typography>
                     <Slider
-                      defaultValue={10}
+                      defaultValue={1}
                       getAriaValueText={valuetext}
                       marks={true}
                       min={1}
