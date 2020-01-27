@@ -1,4 +1,4 @@
-import { RECOGNITION_ATTEMPT, RECOGNITION_SUCCESS, RECOGNITION_FAILURE, LEARN_ATTEMPT, LEARN_SUCCESS, LEARN_FAILURE, EPISODE_CREATION_ATTEMPT, EPISODE_CREATION_FAILURE, EPISODE_CREATION_SUCCESS } from '../types.js'
+import { RECOGNITION_ATTEMPT, RECOGNITION_SUCCESS, RECOGNITION_FAILURE, LEARN_ATTEMPT, LEARN_SUCCESS, LEARN_FAILURE, EPISODE_CREATION_ATTEMPT, EPISODE_CREATION_FAILURE, EPISODE_CREATION_SUCCESS, INTENTIONS_ATTEMPT, INTENTIONS_SUCCESS, INTENTIONS_FAILURE } from '../types.js'
 
 
 const initialState = {
@@ -43,6 +43,18 @@ const StimulusReducer = (state = initialState, action) =>{
         case EPISODE_CREATION_FAILURE:
             newState.episodeCreationStatus = 'failure'
             return newState
+        case INTENTIONS_ATTEMPT:
+            newState.intentionStatus = 'loading'
+            newState.intentionResult = initialState.intentionResult
+            return newState;
+        case INTENTIONS_SUCCESS:
+            newState.intentionStatus = 'success'
+            newState.intentionResult = action.payload
+            return newState;
+        case INTENTIONS_FAILURE:
+            newState.intentionStatus = 'failure'
+            newState.intentionResult = initialState.intentionResult
+            return newState;
         default:
             return newState
     }

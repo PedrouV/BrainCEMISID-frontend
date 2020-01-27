@@ -1,6 +1,6 @@
 import React from 'react'
 import {connect} from 'react-redux'
-import { makeStyles, Button, IconButton, Grid, Card, Typography, Divider } from '@material-ui/core';
+import { makeStyles, Button, IconButton, Grid, Card, Typography, Divider, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core';
 import Slider from '@material-ui/core/Slider';
 import { withStyles } from '@material-ui/styles';
 import CardList from '../../Components/CardList'
@@ -13,9 +13,11 @@ import AccessibilityIcon from '@material-ui/icons/Accessibility';
 import MenuBookIcon from '@material-ui/icons/MenuBook';
 import {biology, cultural, feelings} from '../../Components/colors'
 import { useEffect } from 'react';
-import { getBooleanArrayFromImageData, resizeImage, createImageFromBooleanArray, amplifyBooleanArrayImage } from '../../Store/Actions/Project';
+import { getBooleanArrayFromImageData, resizeImage, createImageFromBooleanArray, amplifyBooleanArrayImage, transformHexArrayToBooleanArray } from '../../Store/Actions/Project';
 import { LiveEpisode, GetIntentions } from '../../Store/Actions/Stimulus';
-
+import AdjustedCardList from '../../Components/AdjustedCardList';
+import VisibilityIcon from '@material-ui/icons/Visibility';
+import HearingIcon from '@material-ui/icons/Hearing';
 
 const grid = 8;
 
@@ -25,7 +27,7 @@ const BiologySlider = withStyles({
     height: 8,
     width: '80%',
     display: 'block',
-    marginTop: '3em',
+    marginTop: '0em',
   },
   thumb: {
     height: 24,
@@ -58,7 +60,7 @@ const CulturalSlider = withStyles({
     height: 8,
     width: '80%',
     display: 'block',
-    marginTop: '3em',
+    marginTop: '0em',
   },
   thumb: {
     height: 24,
@@ -91,7 +93,7 @@ const FeelingsSlider = withStyles({
     height: 8,
     width: '80%',
     display: 'block',
-    marginTop: '3em',
+    marginTop: '0em',
   },
   thumb: {
     height: 24,
@@ -194,7 +196,19 @@ const useStyles = makeStyles(theme=>({
   instructions: {
     width: '80%',
     margin: theme.spacing(1,0)
-  }
+  },
+  wrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  icon: {
+    marginBottom: theme.spacing(1)
+  },
+  section: {
+    margin:  theme.spacing(2,0)
+  },
 }))
 
 const Intentions = (props) => {
@@ -215,7 +229,7 @@ const Intentions = (props) => {
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     borderRadius: grid,
-    border: selectedItem && id === selectedItem.id ? `#5ba8ee solid 2px` : 'none',  
+    border: selectedItem && id === selectedItem.id ? `#5ba8ee solid 2px` : '1px solid #999',  
     // change background colour if dragging
   
     // styles we need to apply on draggables
@@ -223,7 +237,7 @@ const Intentions = (props) => {
   });
   
   const getListStyle = isDraggingOver => ({
-    background: isDraggingOver ? '#000' : '#333',
+    background: isDraggingOver ? '#CCC' : '#DDD',
     display: 'flex',
     padding: grid,
     display: 'flex',
@@ -231,18 +245,22 @@ const Intentions = (props) => {
     width: '80%',
     minHeight: `${grid*2+200}px`,
     borderRadius: grid,
+    border: '2px solid #AAA'
   });
 
+  const {bcf, desiredBcf, status, result} = props
   const [items, setItems] = React.useState([])
   const [lastId, setLastId] = React.useState(items.length)
   const [selectedItem, setSelectedItem] = React.useState(null)
   const [preview, setPreview] = React.useState(null)
-  const [bcf, setBcf] = React.useState({biology: 0.5, culture: 0.5, feelings: 0.5})
-
+  const [open, setOpen] = React.useState(false)
+  const [visualPattern, setVisualPattern] = React.useState(false)
+  const [hearingPattern, setHearingPattern] = React.useState(false)
+  
   useEffect(()=>{
     if(selectedItem){
       resizeImage(selectedItem.image, 16, 16).then(response=>{
-        let arr = getBooleanArrayFromImageData(response.imageData, selectedItem.colorLimit)
+        let arr = getBooleanArrayFromImageData(response.imageData, selectedItem.tolerances)
         createImageFromBooleanArray(amplifyBooleanArrayImage(arr, 12, response.imageData.width, response.imageData.height),response.imageData.width*12, response.imageData.height*12).then(image=>{
           setPreview(image)
         })
@@ -251,6 +269,37 @@ const Intentions = (props) => {
       setPreview(null)
     }
   },[selectedItem])
+
+  useEffect(()=>{
+    if(status === 'success'){
+      if(result){
+        console.log(null)
+        const vp = JSON.parse(result[0].s_knowledge)._pattern
+        const hp = JSON.parse(result[0].h_knowledge)._pattern
+        console.log(vp, hp)
+        const vBoolArr = transformHexArrayToBooleanArray(vp)
+        const hBoolArr = transformHexArrayToBooleanArray(hp)
+        let promises = []
+        promises.push(createImageFromBooleanArray(amplifyBooleanArrayImage(vBoolArr, 12, 16, 16), 16*12, 16*12 , {true: {r: 238, g: 154, b: 18}, false: {r: 239, g: 239, b: 239}}))
+        promises.push(createImageFromBooleanArray(amplifyBooleanArrayImage(hBoolArr, 12, 16, 16), 16*12, 16*12 , {true: {r: 119, g: 221, b: 119}, false: {r: 239, g: 239, b: 239}}))
+        Promise.all(promises).then(images=>{
+          setVisualPattern(images[0])
+          setHearingPattern(images[1])
+          setOpen(true)
+        })
+      }
+    }else if(status === 'failure'){
+      setOpen(true)
+    }
+  }, [status])
+
+  useEffect(()=>{
+    setOpen(false)
+  },[items])
+
+  const handleClose = (e) => {
+    setOpen(false)
+  }
 
   const onDragEnd = (result) => {
     // dropped outside the list
@@ -285,6 +334,9 @@ const Intentions = (props) => {
   const edit = (id) => (e) => {
     console.log(id)
     const newSelectedItem = items.filter((item)=> (item.id === id))[0]
+    if(selectedItem && selectedItem.id === newSelectedItem.id)
+    setSelectedItem(null)
+    else
     setSelectedItem(newSelectedItem)
   }
 
@@ -295,32 +347,6 @@ const Intentions = (props) => {
       setSelectedItem(null)
     }
     setItems(newList)
-  }
-
-  const handleSliderChange = (field) => (e,val) => {
-    let newBcf = {...bcf};
-    newBcf[field] = val/100;
-    console.log(newBcf)
-    setBcf(newBcf)
-  }
-
-  const changeTolerance = (e, newValue) => {
-    let newSelectedItem = {...selectedItem}
-    newSelectedItem.tolerance = newValue/100;
-    newSelectedItem.colorLimit = (255 - 254*newValue/100)
-    let newItems = [];
-    items.forEach(i=>{
-      if(i.id === selectedItem.id){
-        let newItem = {...i}
-        newItem.tolerance = newValue/100;
-        newItem.colorLimit = (255 - 254*newValue/100)
-        newItems.push(newItem)
-      }else{
-        newItems.push(i)
-      }
-    })
-    setItems(newItems)
-    setSelectedItem(newSelectedItem)
   }
 
     const classes = useStyles();
@@ -368,32 +394,53 @@ const Intentions = (props) => {
                 <Grid item xs={12}>
                   <Divider/>
                 </Grid>
-                <Grid item xs={12}>
-                  <Typography className={classes.label}>Ajustes del Patrón Visual:</Typography>
-                </Grid>
-                <Grid item xs={6} className={classes.settingWrapper}>
-                  <Typography className={classes.label}>Previsualización</Typography>
+                <Grid item xs={12} style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+                  <Typography className={classes.label}>Previsualización del patrón neuronal</Typography>
                   <img className={classes.preview} src={preview}/>
-                </Grid>
-                <Grid item xs={6} className={classes.settingWrapper}>
-                  <Typography className={classes.label}>Tolerancia al Color</Typography>
-                    <Slider
-                      defaultValue={selectedItem.tolerance*100}
-                      getAriaValueText={valuetext}
-                      marks={true}
-                      min={1}
-                      max={100}
-                      valueLabelDisplay='auto'
-                      valueLabelFormat={valuetext}
-                      onChange={changeTolerance}
-                      value={selectedItem.tolerance*100}
-                    />
                 </Grid>
                 <Grid item xs={12}>
                   <Divider/>
                 </Grid>
               </Grid>}
               {/*Sliders*/}
+              <Typography className={classes.label} style={{margin: '2em 0 0 0'}}>Estado Interno Deseado</Typography>
+              <BiologySlider
+                defaultValue={desiredBcf.biology*100}
+                getAriaValueText={valuetext}
+                aria-labelledby="discrete-slider-small-steps"
+                valueLabelFormat={valuetext}
+                marks={true}
+                min={0}
+                max={100}
+                valueLabelDisplay="auto"
+                disabled={true}
+              />
+              <Typography className={clsx(classes.label, classes.biology)}><AccessibilityIcon className={classes.labelIcon}/>Biology: {Math.round(bcf.biology*100)/100}</Typography>
+              <CulturalSlider
+                defaultValue={desiredBcf.culture*100}
+                getAriaValueText={valuetext}
+                aria-labelledby="discrete-slider-small-steps"
+                valueLabelFormat={valuetext}
+                marks={true}
+                min={0}
+                max={100}
+                valueLabelDisplay="auto"
+                disabled={true}
+              />
+              <Typography className={clsx(classes.label, classes.cultural)}><MenuBookIcon className={classes.labelIcon}/>Culture: {Math.round(bcf.culture*100)/100}</Typography>
+              <FeelingsSlider
+                defaultValue={desiredBcf.feelings*100}
+                getAriaValueText={valuetext}
+                aria-labelledby="discrete-slider-small-steps"
+                valueLabelFormat={valuetext}
+                marks={true}
+                min={0}
+                max={100}
+                valueLabelDisplay="auto"
+                disabled={true}
+              />
+              <Typography className={clsx(classes.label, classes.feelings)}><FavoriteIcon className={classes.labelIcon}/>Feelings: {Math.round(bcf.feelings*100)/100}</Typography>
+              <Typography className={classes.label} style={{margin: '2em 0 0 0'}}>Estado Interno Actual</Typography>
               <BiologySlider
                 defaultValue={bcf.biology*100}
                 getAriaValueText={valuetext}
@@ -403,7 +450,7 @@ const Intentions = (props) => {
                 min={0}
                 max={100}
                 valueLabelDisplay="auto"
-                onChange={handleSliderChange('biology')}
+                disabled={true}
               />
               <Typography className={clsx(classes.label, classes.biology)}><AccessibilityIcon className={classes.labelIcon}/>Biology: {Math.round(bcf.biology*100)/100}</Typography>
               <CulturalSlider
@@ -415,7 +462,7 @@ const Intentions = (props) => {
                 min={0}
                 max={100}
                 valueLabelDisplay="auto"
-                onChange={handleSliderChange('culture')}
+                disabled={true}
               />
               <Typography className={clsx(classes.label, classes.cultural)}><MenuBookIcon className={classes.labelIcon}/>Culture: {Math.round(bcf.culture*100)/100}</Typography>
               <FeelingsSlider
@@ -427,15 +474,63 @@ const Intentions = (props) => {
                 min={0}
                 max={100}
                 valueLabelDisplay="auto"
-                onChange={handleSliderChange('feelings')}
+                disabled={true}
               />
               <Typography className={clsx(classes.label, classes.feelings)}><FavoriteIcon className={classes.labelIcon}/>Feelings: {Math.round(bcf.feelings*100)/100}</Typography>
               <Button disabled={items.length <= 0} onClick={handleConfirm} className={classes.button} variant='contained' color='primary'>Obtener Intenciones</Button>
             </Grid>
             <Grid item xs={4}>
-                  <CardList create={create}/>
+                <Typography variant='h2' style={{fontSize: '2em', textAlign: 'center', fontWeight: 400, margin: '0 0 1em 0'}}>Imágenes Configuradas</Typography>
+                <AdjustedCardList create={create}/>
             </Grid>
           </Grid>
+          {visualPattern && hearingPattern && items.length && <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
+                <DialogTitle id="customized-dialog-title" onClose={handleClose}>
+                  Pensamiento:
+                </DialogTitle>
+                <DialogContent dividers>
+                <div className={classes.section}>
+                <Grid container spacing={2}>
+                  <Grid item xs={4}>
+                    <div className={classes.wrapper}>
+                      <VisibilityIcon className={classes.icon}/>
+                      <img src={visualPattern}/>
+                    </div>
+                  </Grid>
+                  <Grid item xs={4} className={classes.wrapper}>
+                    <Typography className={classes.bolder}>Categoría</Typography>
+                    <Typography>{result[0] && result[0].h_knowledge ? JSON.parse(result[0].h_knowledge)._class : ''}</Typography>
+                  </Grid>
+                  <Grid item xs={4}>
+                    <div className={classes.wrapper}>
+                      <HearingIcon className={classes.icon}/>
+                      <img src={hearingPattern}/> 
+                    </div>
+                  </Grid>
+                </Grid>
+                </div>
+                </DialogContent>
+                <DialogActions>
+                  <Button autoFocus onClick={handleClose} color="primary">
+                    OK
+                  </Button>
+                </DialogActions>
+              </Dialog>}
+                {items.length && status === 'failure' && <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
+                <DialogTitle id="customized-dialog-title" onClose={handleClose}>
+                  Pensamiento:
+                </DialogTitle>
+                <DialogContent dividers>
+                <div className={classes.section}>
+                <Typography>MISS: Patrón Visual no reconocido.</Typography>
+                </div>
+                </DialogContent>
+                <DialogActions>
+                  <Button autoFocus onClick={handleClose} color="primary">
+                    OK
+                  </Button>
+                </DialogActions>
+              </Dialog>}
         </div>
     )
 }
@@ -443,6 +538,10 @@ const Intentions = (props) => {
 const mapStateToProps = (state) =>{
   return ({
     cards: state.Project.cards,
+    bcf: state.Project.internalState,
+    desiredBcf: state.Project.desiredState,
+    status: state.Stimulus.intentionStatus,
+    result: state.Stimulus.intentionResult,
   })
 }
 

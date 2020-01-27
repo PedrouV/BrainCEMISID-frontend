@@ -1,4 +1,4 @@
-import { RECOGNITION_SUCCESS, RECOGNITION_ATTEMPT, SET_SNB, LEARN_ATTEMPT, LEARN_SUCCESS, LEARN_FAILURE, EPISODE_CREATION_SUCCESS, EPISODE_CREATION_ATTEMPT, EPISODE_CREATION_FAILURE } from "../types"
+import { RECOGNITION_SUCCESS, RECOGNITION_ATTEMPT, SET_SNB, LEARN_ATTEMPT, LEARN_SUCCESS, LEARN_FAILURE, EPISODE_CREATION_SUCCESS, EPISODE_CREATION_ATTEMPT, EPISODE_CREATION_FAILURE, INTENTIONS_ATTEMPT, INTENTIONS_FAILURE, INTENTIONS_SUCCESS } from "../types"
 import { RootRoute } from "../../Config/api"
 import { resizeImage, getBooleanArrayFromImageData, getBrainPatternFromBoleanArray, createImageFromBooleanArray, amplifyBooleanArrayImage } from './Project'
 import Axios from "axios"
@@ -168,6 +168,7 @@ export const LiveEpisode = (items, bcf) => {
 
 export const GetIntentions = (items, bcf) => {
     return (dispatch, getState) => {
+        dispatch({type: INTENTIONS_ATTEMPT})
         console.log(items, bcf)
         let reducedImagesPromises = []
         items.forEach(item=>{
@@ -222,8 +223,10 @@ export const GetIntentions = (items, bcf) => {
             }
             console.log(formatedData)
             Axios.put(`${RootRoute}/api/kernel/?project_id=${getState().Project.projectId}`, formatedData, config).then(r=>{
+                dispatch({type: INTENTIONS_SUCCESS, payload: r.data})
                 console.log(r)
             }).catch(err=>{
+                dispatch({type: INTENTIONS_FAILURE})
                 console.log(err.response)
             })
         })
