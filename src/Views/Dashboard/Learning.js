@@ -547,6 +547,7 @@ const Learning = (props) => {
               <Button onClick={handleConfirm} className={classes.button} variant='contained' color='primary' disabled={!card || !category || !neuronSet}>Aprender</Button>
             </Grid>
             <Grid item xs={4}>
+              <Typography variant='h2' style={{fontSize: '2em', textAlign: 'center', fontWeight: 400, margin: '0 0 1em 0'}}>Imágenes Configuradas</Typography>
               <AdjustedCardList addRedirection={true} create={create}/>
             </Grid>
           </Grid>

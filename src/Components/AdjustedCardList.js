@@ -20,8 +20,8 @@ const useStyles = makeStyles(theme=>({
         maxHeight: '75vh',
         border: `2px ${theme.palette.primary.main} solid`,
         borderRadius: '8px',
-        margin: '10vh 0 0 0',
-        padding: theme.spacing(2)
+        padding: theme.spacing(2),
+        background: "#F0F0F0"
     },
     card: {
         paddingTop: '100%'

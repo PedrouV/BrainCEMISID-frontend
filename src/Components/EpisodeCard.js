@@ -16,7 +16,7 @@ export default function EpisodeCard(props) {
             display: 'inline-flex',
             background: '#fff',
             border: '1px solid #999',
-            borderRadius: '3px',
+            borderRadius: '8px',
             width: '180px',
             minWidth: '180px',
             maxWidth: '180px',
@@ -43,7 +43,7 @@ export default function EpisodeCard(props) {
         <Draggable onStop={props.onStop} cancel="span" bounds="parent" axis='x' id={props.id} grid={[100, 0]}>
             <div className={classes.box}>
                 <span className={classes.closeButton}>
-                    <IconButton onClick={props.onRemove ? props.onRemove(props.id) : null}><CloseIcon/></IconButton>
+                    <Button variant='contained' onClick={props.onRemove ? props.onRemove(props.id) : null}><CloseIcon/></Button>
                 </span>
             </div>
         </Draggable>

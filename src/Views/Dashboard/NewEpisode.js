@@ -1,9 +1,9 @@
 import React from 'react'
 import {connect} from 'react-redux'
-import { makeStyles, Button, IconButton, Grid, Card, Typography, Divider } from '@material-ui/core';
+import { makeStyles, Button, IconButton, Grid, Card, Typography, Divider, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core';
 import Slider from '@material-ui/core/Slider';
 import { withStyles } from '@material-ui/styles';
-import CardList from '../../Components/CardList'
+import AdjustedCardList from '../../Components/AdjustedCardList'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import CloseIcon from '@material-ui/icons/Close'
 import EditIcon from '@material-ui/icons/Edit';
@@ -215,7 +215,7 @@ const NewEpisode = (props) => {
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     borderRadius: grid,
-    border: selectedItem && id === selectedItem.id ? `#5ba8ee solid 2px` : 'none',  
+    border: selectedItem && id === selectedItem.id ? `#5ba8ee solid 2px` : '1px solid #999',  
     // change background colour if dragging
   
     // styles we need to apply on draggables
@@ -223,7 +223,7 @@ const NewEpisode = (props) => {
   });
   
   const getListStyle = isDraggingOver => ({
-    background: isDraggingOver ? '#000' : '#333',
+    background: isDraggingOver ? '#CCC' : '#DDD',
     display: 'flex',
     padding: grid,
     display: 'flex',
@@ -231,9 +231,12 @@ const NewEpisode = (props) => {
     width: '80%',
     minHeight: `${grid*2+200}px`,
     borderRadius: grid,
+    border: '2px solid #AAA'
   });
 
+  const {episodeCreationStatus} = props
   const [items, setItems] = React.useState([])
+  const [open, setOpen] = React.useState(false)
   const [lastId, setLastId] = React.useState(items.length)
   const [selectedItem, setSelectedItem] = React.useState(null)
   const [preview, setPreview] = React.useState(null)
@@ -242,7 +245,7 @@ const NewEpisode = (props) => {
   useEffect(()=>{
     if(selectedItem){
       resizeImage(selectedItem.image, 16, 16).then(response=>{
-        let arr = getBooleanArrayFromImageData(response.imageData, selectedItem.colorLimit)
+        let arr = getBooleanArrayFromImageData(response.imageData, selectedItem.tolerances)
         createImageFromBooleanArray(amplifyBooleanArrayImage(arr, 12, response.imageData.width, response.imageData.height),response.imageData.width*12, response.imageData.height*12).then(image=>{
           setPreview(image)
         })
@@ -251,6 +254,16 @@ const NewEpisode = (props) => {
       setPreview(null)
     }
   },[selectedItem])
+
+  useEffect(()=>{
+    if(episodeCreationStatus === 'success' || episodeCreationStatus === 'failure'){
+      setOpen(true);
+    }
+  }, [episodeCreationStatus])
+
+  useEffect(()=>{
+    setOpen(false)
+  }, [items])
 
   const onDragEnd = (result) => {
     // dropped outside the list
@@ -266,10 +279,14 @@ const NewEpisode = (props) => {
 
     setItems(newItems);
   }
+  
+  const handleClose = (e) => {
+    setOpen(false)
+  }
 
   const create = (e) =>{
     console.log(e)
-    setItems([...items, {...e, id: ""+lastId, tolerance: 0.1, colorLimit: 255 - 254*0.1}])
+    setItems([...items, {...e, id: ""+lastId}])
     setLastId(lastId+1);
   }
 
@@ -368,26 +385,9 @@ const NewEpisode = (props) => {
                 <Grid item xs={12}>
                   <Divider/>
                 </Grid>
-                <Grid item xs={12}>
-                  <Typography className={classes.label}>Ajustes del Patrón Visual:</Typography>
-                </Grid>
-                <Grid item xs={6} className={classes.settingWrapper}>
-                  <Typography className={classes.label}>Previsualización</Typography>
+                <Grid item xs={12} style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+                  <Typography className={classes.label}>Previsualización del patrón neuronal</Typography>
                   <img className={classes.preview} src={preview}/>
-                </Grid>
-                <Grid item xs={6} className={classes.settingWrapper}>
-                  <Typography className={classes.label}>Tolerancia al Color</Typography>
-                    <Slider
-                      defaultValue={selectedItem.tolerance*100}
-                      getAriaValueText={valuetext}
-                      marks={true}
-                      min={1}
-                      max={100}
-                      valueLabelDisplay='auto'
-                      valueLabelFormat={valuetext}
-                      onChange={changeTolerance}
-                      value={selectedItem.tolerance*100}
-                    />
                 </Grid>
                 <Grid item xs={12}>
                   <Divider/>
@@ -433,9 +433,23 @@ const NewEpisode = (props) => {
               <Button disabled={items.length <= 0} onClick={handleConfirm} className={classes.button} variant='contained' color='primary'>Vivir Episodio</Button>
             </Grid>
             <Grid item xs={4}>
-                  <CardList create={create}/>
+                <Typography variant='h2' style={{fontSize: '2em', textAlign: 'center', fontWeight: 400, margin: '0 0 1em 0'}}>Imágenes Configuradas</Typography>
+                <AdjustedCardList create={create}/>
             </Grid>
           </Grid>
+          <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
+                <DialogTitle id="customized-dialog-title" onClose={handleClose}>
+                {episodeCreationStatus === 'success' ? 'Exito!' : 'Algo ha salido mal'}
+                </DialogTitle>
+                <DialogContent dividers>
+                {episodeCreationStatus === 'success' ? 'El nuevo episodio ha sido aprendido' : 'Algo ha salido mal en el aprendizaje del nuevo episodio'}
+                </DialogContent>
+                <DialogActions>
+                  <Button autoFocus onClick={handleClose} color="primary">
+                    OK
+                  </Button>
+                </DialogActions>
+              </Dialog>
         </div>
     )
 }
@@ -443,6 +457,7 @@ const NewEpisode = (props) => {
 const mapStateToProps = (state) =>{
   return ({
     cards: state.Project.cards,
+    episodeCreationStatus: state.Stimulus.episodeCreationStatus,
   })
 }
 

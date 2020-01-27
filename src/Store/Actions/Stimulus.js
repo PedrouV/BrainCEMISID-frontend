@@ -1,4 +1,4 @@
-import { RECOGNITION_SUCCESS, RECOGNITION_ATTEMPT, SET_SNB, LEARN_ATTEMPT, LEARN_SUCCESS, LEARN_FAILURE } from "../types"
+import { RECOGNITION_SUCCESS, RECOGNITION_ATTEMPT, SET_SNB, LEARN_ATTEMPT, LEARN_SUCCESS, LEARN_FAILURE, EPISODE_CREATION_SUCCESS, EPISODE_CREATION_ATTEMPT, EPISODE_CREATION_FAILURE } from "../types"
 import { RootRoute } from "../../Config/api"
 import { resizeImage, getBooleanArrayFromImageData, getBrainPatternFromBoleanArray, createImageFromBooleanArray, amplifyBooleanArrayImage } from './Project'
 import Axios from "axios"
@@ -90,6 +90,7 @@ export const Recognize = (card, data) => {
 
 export const LiveEpisode = (items, bcf) => {
     return (dispatch, getState) => {
+        dispatch({type: EPISODE_CREATION_ATTEMPT})
         console.log(items, bcf)
         let reducedImagesPromises = []
         items.forEach(item=>{
@@ -105,7 +106,7 @@ export const LiveEpisode = (items, bcf) => {
             const intentions_input = [0,0,0]
             const desired_intentions_input = [getState().Project.desiredState.biology, getState().Project.desiredState.culture, getState().Project.desiredState.feelings]
             images.forEach((image, index)=>{
-                let boolArray = getBooleanArrayFromImageData(image.imageData, items[index].colorLimit)
+                let boolArray = getBooleanArrayFromImageData(image.imageData, items[index].tolerances)
                 let hexArray = getBrainPatternFromBoleanArray(boolArray)
                 sightPatterns.push(hexArray);
             })
@@ -141,7 +142,8 @@ export const LiveEpisode = (items, bcf) => {
                         sight_pattern: sp,
                         intentions_input: [bcf.biology, bcf.culture, bcf.feelings],
                         image_id: -1,
-                        rename: 'false'
+                        rename: 'false',
+                        desired_intentions_input
                     })
                 }
             })
@@ -155,8 +157,10 @@ export const LiveEpisode = (items, bcf) => {
             console.log(formatedData)
             Axios.put(`${RootRoute}/api/kernel/?project_id=${getState().Project.projectId}`, formatedData, config).then(r=>{
                 console.log(r)
+                dispatch({type: EPISODE_CREATION_SUCCESS})
             }).catch(err=>{
                 console.log(err.response)
+                dispatch({type: EPISODE_CREATION_FAILURE})
             })
         })
     }
@@ -179,7 +183,7 @@ export const GetIntentions = (items, bcf) => {
             const intentions_input = [0,0,0]
             const desired_intentions_input = [getState().Project.desiredState.biology, getState().Project.desiredState.culture, getState().Project.desiredState.feelings]
             images.forEach((image, index)=>{
-                let boolArray = getBooleanArrayFromImageData(image.imageData, items[index].colorLimit)
+                let boolArray = getBooleanArrayFromImageData(image.imageData, items[index].tolerances)
                 let hexArray = getBrainPatternFromBoleanArray(boolArray)
                 sightPatterns.push(hexArray);
             })
