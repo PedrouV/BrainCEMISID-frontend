@@ -1,5 +1,5 @@
 import {
-    SIGN_IN_USER, SET_PROJECT_SUMMARY, SET_CARDS, SET_SNB, RECOGNITION_SUCCESS, SET_DESIRED_STATE, SET_ADJUSTED_CARDS, ADJUST_CARD_ATTEMPT, ADJUST_CARD_SUCCESS, ADJUST_CARD_FAILURE
+    SIGN_IN_USER, SET_PROJECT_SUMMARY, SET_CARDS, SET_SNB, RECOGNITION_SUCCESS, SET_DESIRED_STATE, SET_ADJUSTED_CARDS, ADJUST_CARD_ATTEMPT, ADJUST_CARD_SUCCESS, ADJUST_CARD_FAILURE, PROJECT_CREATION_ATTEMPT, PROJECT_CREATION_FAILURE, PROJECT_CREATION_SUCCESS
 } from '../types.js'
 import {n1, n2, n3, n4, n5, n6, n7, n8, n9, n0} from '../../Components/PreloadedCardImages'
 
@@ -85,7 +85,8 @@ const initialState = {
     relNetwork: [],
     episodicMemory: [],
     adjustedCards: [],
-    adjustCardStatus: 'none'
+    adjustCardStatus: 'none',
+    creationProjectStatus: 'none'
 }
 
 const ProjectReducer = (state = initialState, action) =>{
@@ -138,6 +139,15 @@ const ProjectReducer = (state = initialState, action) =>{
             return newState
         case ADJUST_CARD_FAILURE:
             newState.adjustCardStatus = 'failure'
+            return newState
+        case PROJECT_CREATION_ATTEMPT:
+            newState.creationProjectStatus = 'loading'
+            return newState
+        case PROJECT_CREATION_SUCCESS:
+            newState.creationProjectStatus = 'success'
+            return newState
+        case PROJECT_CREATION_FAILURE:
+            newState.creationProjectStatus = 'failure'
             return newState
         default:
             return newState

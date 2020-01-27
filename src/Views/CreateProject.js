@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Navbar from '../Components/Navbar'
-import { Container, Breadcrumbs, Typography, makeStyles, Link, Paper, TextField, Button } from '@material-ui/core'
+import { Container, Breadcrumbs, Typography, makeStyles, Link, Paper, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core'
 import {Link as RouterLink, Redirect} from 'react-router-dom'
 import { connect } from 'react-redux';
 import {CreateProject as create} from '../Store/Actions/Project'
@@ -71,9 +71,21 @@ const useStyles = makeStyles(theme=>({
 const CreateProject = (props) => {
 
     const classes = useStyles();
-    const {user} = props
+    const {user, status} = props
     const [name, setName] = React.useState('')
     const [noNameError, setNoNameError] = React.useState(false)
+    const [open, setOpen] = React.useState(false)
+
+    useEffect(() => {
+        if(status === 'success' || status === 'failure'){
+            setOpen(true)
+        }
+    }, [props.status])
+
+    useEffect(()=>{
+        setOpen(false)
+    },[])
+
     if(!user){
         return (
             <Redirect to={'/auth/login'}/>
@@ -91,6 +103,10 @@ const CreateProject = (props) => {
         else{
             setNoNameError(true)
         }
+    }
+
+    const handleClose = (e) => {
+        setOpen(false)
     }
 
     return (
@@ -116,20 +132,38 @@ const CreateProject = (props) => {
                             helperText={noNameError ? 'El nombre es necesario para su proyecto' : ''}
                         />
                         <div className={classes.buttonContainer}>
-                            <Button onClick={createProject} variant='contained' color='secondary' className={classes.button}>Create Project</Button>
-                            <Button component={RLink} to='/projects' variant='outlined' color='secondary' className={classes.button} >Cancel</Button>
+                            <Button onClick={createProject} variant='contained' color='secondary' className={classes.button}>Crear Proyecto</Button>
+                            <Button component={RLink} to='/projects' variant='outlined' color='secondary' className={classes.button} >Atrás</Button>
                         </div>
                     </Paper>
                 </Container>
             </div>
             <Copyright className={classes.copyright}/>
+            <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
+                <DialogTitle id="customized-dialog-title" onClose={handleClose}>
+                {props.status === 'success' ? 'Exito!' : 'Algo ha salido mal'}
+                </DialogTitle>
+                <DialogContent dividers>
+                    {props.status === 'success' && <Typography>El proyecto <b>{name}</b> ha sido creado exitosamente</Typography>}
+                    {props.status === 'failure' && <Typography>Algo ha salido mal, intente nuevamente :(</Typography>}
+                </DialogContent>
+                <DialogActions>
+                  {status === 'success' &&<Button variant='contained' component={RLink} autoFocus to={`/projects`} color="primary">
+                    Ir a los proyectos
+                  </Button>}
+                  {status === 'failure' &&<Button variant='contained' onClick={handleClose} autoFocus color="primary">
+                    OK
+                  </Button>}
+                </DialogActions>
+            </Dialog>
         </div>
     )
 }
 
 const mapStateToProps = (state) =>{
     return ({
-        user: state.Auth.userInfo
+        user: state.Auth.userInfo,
+        status: state.Project.creationProjectStatus,
     })
 }
 

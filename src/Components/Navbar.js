@@ -28,9 +28,6 @@ const Navbar = () => {
                 <Typography variant="h6" className={classes.title}>
                 Proyectos BrainCEMISID
                 </Typography>
-                <IconButton component={Link} to='/settings' color="inherit">
-                   <AccountCircleIcon  fontSize='large'/> 
-                </IconButton>
             </Toolbar>
         </AppBar>
     )

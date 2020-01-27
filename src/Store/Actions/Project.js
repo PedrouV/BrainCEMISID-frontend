@@ -1,4 +1,4 @@
-import { SET_PROJECT_SUMMARY, SET_CARDS, SET_SNB, LOG_OUT, SET_DESIRED_STATE, SET_ADJUSTED_CARDS, ADJUST_CARD_ATTEMPT, ADJUST_CARD_SUCCESS, ADJUST_CARD_FAILURE } from "../types"
+import { SET_PROJECT_SUMMARY, SET_CARDS, SET_SNB, LOG_OUT, SET_DESIRED_STATE, SET_ADJUSTED_CARDS, ADJUST_CARD_ATTEMPT, ADJUST_CARD_SUCCESS, ADJUST_CARD_FAILURE, PROJECT_CREATION_SUCCESS, PROJECT_CREATION_ATTEMPT, PROJECT_CREATION_FAILURE } from "../types"
 import { RootRoute } from "../../Config/api"
 import Axios from "axios"
 
@@ -222,9 +222,12 @@ export const CreateProject = (name) =>{
         const config = {
             headers: {'Authorization': `token ${getState().Auth.user.token}` }
         }
+        dispatch({type: PROJECT_CREATION_ATTEMPT})
         Axios.post(RootRoute+`/api/kernel/`, {user_id: getState().Auth.userInfo.id, project_name: name}, config).then(response=>{
+            dispatch({type: PROJECT_CREATION_SUCCESS})
             console.log('ready')
         }).catch(err=>{
+            dispatch({type: PROJECT_CREATION_FAILURE})
             console.log(err)
         })
     }

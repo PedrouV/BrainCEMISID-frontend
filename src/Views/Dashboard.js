@@ -163,11 +163,8 @@ const Dashboard = (props) => {
             <MenuIcon />
           </IconButton>
           <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
-            Dashboard
+            Panel de Proyecto: {props.projectName}
           </Typography>
-          <IconButton color="inherit">
-           <AccountCircleIcon fontSize='large'/>
-          </IconButton>
         </Toolbar>
       </AppBar>
       <Drawer
@@ -218,7 +215,8 @@ const Dashboard = (props) => {
 
 const mapStateToProps = (state) => {
   return ({
-    token: state.Auth.user ? state.Auth.user.token : null
+    token: state.Auth.user ? state.Auth.user.token : null,
+    projectName: state.Project.projectName
   })
 }
 
