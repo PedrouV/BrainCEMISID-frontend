@@ -90,7 +90,7 @@ const useStyles = makeStyles(theme=>({
         marginBottom: theme.spacing(2)
     },
     label: {
-        fontSize: '0.8em',
+        fontSize: '1',
         color: '#707070'
     }
 }))
@@ -108,7 +108,7 @@ const NewCard = (props) => {
 
     let labeljsx = (<label className={classes.fileLabel} htmlFor='upload'>
         <div className={classes.innerWrapper}>
-            Sube un Archivo
+            Sube una Imagen
             {upload_Icon}
         </div>
     </label>);
@@ -163,13 +163,13 @@ const NewCard = (props) => {
             /* crop={this._crop.bind(this)}*/ />)
         labeljsx = <label className={classes.fileLabelOnlyText} htmlFor='upload'>
             {upload_Icon}
-            Sube un Archivo
+            Sube otra Imagen
         </label>
     }
 
     return (
         <Container className={classes.root}>
-            <Typography variant='h3' className={classes.title}>Nueva Tarjeta</Typography>
+        <Typography variant='h2' style={{fontSize: '2em', fontWeight: 400, margin: '0 0 1em 0'}}>Creación de Tarjetas</Typography>
             <Grid container spacing={2}>
                 <Grid item xs={6}>
                     <Typography className={classes.label}>Nombre de la Nueva Tarjeta</Typography>
@@ -182,7 +182,7 @@ const NewCard = (props) => {
                     />
                 </Grid>
                 <Grid item xs={6}>
-                    <Typography className={classes.label}>Clase de la Nueva Tarjeta</Typography>
+                    <Typography className={classes.label}>Conjunto de la Nueva Tarjeta</Typography>
                     <TextField
                         className={classes.textField}
                         id='className'

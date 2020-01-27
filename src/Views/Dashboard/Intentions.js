@@ -354,6 +354,7 @@ const Intentions = (props) => {
         <div className={classes.root}>
           <Grid container spacing={2} className={classes.grid}>
             <Grid item xs={8}>
+            <Typography variant='h2' style={{fontSize: '2em', fontWeight: 400, margin: '0 0 1em 0'}}>Intenciones</Typography>
               <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable droppableId="droppable" direction="horizontal">
                   {(provided, snapshot) => (

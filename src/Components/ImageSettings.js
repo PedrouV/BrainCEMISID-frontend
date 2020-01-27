@@ -219,6 +219,7 @@ const ImageSettings = (props) => {
 
     return (
         <div className={classes.root}>
+            <Typography variant='h2' style={{fontSize: '2em', fontWeight: 400, margin: '1.5em 0 1em 0'}}>Cuarto de Imágenes</Typography>
             <Typography style={{textAlign: 'center', margin: '1em 0', fontWeight: 500, width: '90%', margin: 'auto'}}>La configuración de la imagen puede cambiarse siempre que ne se haya aprendido ningun patrón visual asociado a dicha imagen, luego de aprenderse, la configuración no podrá variar nuevamente</Typography>
             <div className={classes.imagesWrapper}>
                 <img src={image ? image.image : null} className={classes.image}/>
