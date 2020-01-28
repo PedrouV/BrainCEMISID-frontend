@@ -415,6 +415,7 @@ const Intentions = (props) => {
                 max={100}
                 valueLabelDisplay="auto"
                 disabled={true}
+                value={desiredBcf.biology*100}
               />
               <Typography className={clsx(classes.label, classes.biology)}><AccessibilityIcon className={classes.labelIcon}/>Biology: {Math.round(bcf.biology*100)/100}</Typography>
               <CulturalSlider
@@ -427,6 +428,7 @@ const Intentions = (props) => {
                 max={100}
                 valueLabelDisplay="auto"
                 disabled={true}
+                value={desiredBcf.culture*100}
               />
               <Typography className={clsx(classes.label, classes.cultural)}><MenuBookIcon className={classes.labelIcon}/>Culture: {Math.round(bcf.culture*100)/100}</Typography>
               <FeelingsSlider
@@ -439,6 +441,7 @@ const Intentions = (props) => {
                 max={100}
                 valueLabelDisplay="auto"
                 disabled={true}
+                value={desiredBcf.feelings*100}
               />
               <Typography className={clsx(classes.label, classes.feelings)}><FavoriteIcon className={classes.labelIcon}/>Feelings: {Math.round(bcf.feelings*100)/100}</Typography>
               <Typography className={classes.label} style={{margin: '2em 0 0 0'}}>Estado Interno Actual</Typography>

@@ -1,20 +1,20 @@
 import {
-    SIGN_IN_USER, LOADING_SIGN_IN, SET_PROJECTS, LOADING_PROJECTS, LOG_OUT
+    SIGN_IN_USER, LOADING_SIGN_IN, SET_PROJECTS, LOADING_PROJECTS, LOG_OUT, LOG_IN_FAIL
 } from '../types.js'
 
 const initialState = {
     user: null,
     userInfo: null,
-    loginStatus: {errors: null, status: '', code: 0},
+    loginStatus: {errors: false, status: '', code: 0},
     projects: [],
-    loadingProjects: false
+    loadingProjects: false,
 }
 
 const AuthReducer = (state = initialState, action) =>{
     let newState = {...state}
     switch(action.type){
         case LOADING_SIGN_IN:
-            return newState
+            return initialState
         case SIGN_IN_USER:
             newState.user = action.payload.user;
             newState.userInfo = action.payload.userInfo
@@ -30,6 +30,9 @@ const AuthReducer = (state = initialState, action) =>{
         case LOG_OUT:
             newState = initialState;
             return newState;
+        case LOG_IN_FAIL:
+            newState.loginStatus = {errors: true, status: 'failure', code: 401}
+            return newState
         default:
             return newState
     }

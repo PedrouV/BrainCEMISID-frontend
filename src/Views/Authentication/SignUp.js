@@ -163,6 +163,7 @@ const SignUp = (props) => {
             color="primary"
             className={classes.submit}
             onClick={handleRegister}
+            disabled={!registerForm.username || !registerForm.email || registerForm.password.length < 6 || registerForm.password !== registerForm.passwordConfirm}
           >
             Regístrate
           </Button>
@@ -175,6 +176,12 @@ const SignUp = (props) => {
   );
 }
 
+const mapStateToProps = (state) => {
+  return({
+    status: state.Auth.signUpStatus
+  })
+}
+
 const mapDispatchToProps = (dispatch) =>{
     return({
         registerUser: (data) =>{
@@ -183,4 +190,4 @@ const mapDispatchToProps = (dispatch) =>{
     })
 }
 
-export default connect(null, mapDispatchToProps)(SignUp)
+export default connect(mapStateToProps, mapDispatchToProps)(SignUp)

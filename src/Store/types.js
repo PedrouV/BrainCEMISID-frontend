@@ -4,6 +4,7 @@ export const LOADING_SIGN_IN = 'LOADING_SIGN_IN'
 export const LOADING_PROJECTS = 'LOADING_PROJECTS'
 export const SET_PROJECTS = 'SET_PROJECTS'
 export const LOG_OUT = 'LOG_OUT'
+export const LOG_IN_FAIL = 'LOG_IN_FAIL'
 //Project Action Types
 export const SET_PROJECT_SUMMARY = 'SET_PROJECT_SUMMARY'
 export const LOADING_PROJECT_DETAILS = 'LOADING_PROJECT_DETAILS'

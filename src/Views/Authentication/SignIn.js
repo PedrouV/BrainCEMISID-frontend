@@ -86,6 +86,7 @@ const SignIn = (props) => {
         <Typography component="h1" variant="h5">
           Autenticación
         </Typography>
+        {props.status.errors && <Typography style={{fontSize: '0.8em', color: 'red'}}>Credenciales Incorrectas</Typography>}
         <form className={classes.form} noValidate>
           <TextField
             variant="outlined"
@@ -120,7 +121,7 @@ const SignIn = (props) => {
             color="primary"
             className={classes.submit}
             onClick = {handleLogin}
-            disabled={!loginForm.username && loginForm.password.length < 6}
+            disabled={!loginForm.username || loginForm.password.length < 6}
           >
             Iniciar Sesión
           </Button>
@@ -133,6 +134,12 @@ const SignIn = (props) => {
   );
 }
 
+const mapStateToProps = (state) => {
+  return({
+    status: state.Auth.loginStatus
+  })
+}
+
 const mapDispatchToProps = (dispatch) =>{
   return({
       loginUser: (credentials) =>{
@@ -141,4 +148,4 @@ const mapDispatchToProps = (dispatch) =>{
   })
 }
 
-export default connect(null, mapDispatchToProps)(SignIn)
+export default connect(mapStateToProps, mapDispatchToProps)(SignIn)

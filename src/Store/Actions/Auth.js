@@ -1,4 +1,4 @@
-import { SIGN_IN_USER, LOADING_SIGN_IN, LOADING_PROJECTS, SET_PROJECTS, LOG_OUT } from "../types"
+import { SIGN_IN_USER, LOADING_SIGN_IN, LOADING_PROJECTS, SET_PROJECTS, LOG_OUT, LOG_IN_FAIL } from "../types"
 import { RootRoute } from "../../Config/api"
 import Axios from "axios"
 
@@ -41,6 +41,7 @@ export const LoginUser = (credentials) =>{
             }})
         }).catch(e=>{
             console.log(e);
+            dispatch({type: LOG_IN_FAIL})
         })
     }
 }
